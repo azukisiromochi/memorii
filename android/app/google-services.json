@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "546326024686",
+    "firebase_url": "https://photo-beauty-24f63-default-rtdb.firebaseio.com",
+    "project_id": "photo-beauty-24f63",
+    "storage_bucket": "photo-beauty-24f63.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:546326024686:android:ee9ae165da7de39437feff",
+        "android_client_info": {
+          "package_name": "com.example.app20200712"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "546326024686-haoa2gcadh54jgbb1iun0najkf4c0tcu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC7l6TlsFMab4dhqUvjZmHa82ioTp8x144"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "546326024686-haoa2gcadh54jgbb1iun0najkf4c0tcu.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "546326024686-6h36ahi3co3jbnbn774tqbnn2flkaplu.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.app20200712"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
