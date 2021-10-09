@@ -1,19 +1,20 @@
 import 'dart:io';
-import 'dart:math';
+// import 'dart:math';
 import 'package:app/3-account/items/accountEdit.dart';
 import 'package:app/3-account/items/accountImage.dart';
 import 'package:app/3-account/items/photoEdit.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:linkable/linkable.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:sizer/sizer.dart';
 import '../singleton.dart';
 import 'items/like.dart';
-// import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 final navigatorssKey = GlobalKey<NavigatorState>();
 
@@ -25,45 +26,34 @@ class AccountAccountMain extends StatefulWidget {
 
 class _AccountAccountMainState extends State<AccountAccountMain> {
 
-  // TabController? _controller;
   List accountPhotos = [];
   int favoriteCount = 0;
+  String instagram = '';
+  String tiktok = '';
 
   @override
   void initState() {
     super.initState();
-    // _controller = TabController(length: 2, vsync: this);
+    start();
   }
 
-  List<String> posts = [
-    'https://storage.googleapis.com/photo-beauty-24f63.appspot.com/profiles/resize_images/8RI6oK0CzJTVDAhPlm0xCZ0YsLP2_1080x1080?GoogleAccessId=photo-beauty-24f63%40appspot.gserviceaccount.com&Expires=33166281600&Signature=SlwxnVhUDDntvTyJMzpTqGtGHyb1%2BCj7aZRogdOa8Lvke1DQYQbEMSLy8HX6ZVWDCsR3nIWFnTUW4RNlThB%2FjuPFHlFnimxpoDeAjtS4XMd%2FASueyTxoNM0wKta7esXa8vJu%2FzqFtqZHx8msdQRz1BQEtfe0fHEs67222K2LRflk9kFNQI94i0yZYeI9KutVi0XsbFiWH3%2FBEhde1n0MHSursQ1kIY7RZK2wHhf3o%2B7x5oVaL9QnbDiQkMuyjv%2Fy4XinCNTvKEQOiVTV59%2F%2ByqeAFN6MeiMQMOZ%2FXUIJ8BopfFqoZ3eGAye7cR6%2BxokuOBIcdSyvWma5%2FP0W3KKltA%3D%3D',
-    'https://storage.googleapis.com/photo-beauty-24f63.appspot.com/profiles/resize_images/8RI6oK0CzJTVDAhPlm0xCZ0YsLP2_1080x1080?GoogleAccessId=photo-beauty-24f63%40appspot.gserviceaccount.com&Expires=33166281600&Signature=SlwxnVhUDDntvTyJMzpTqGtGHyb1%2BCj7aZRogdOa8Lvke1DQYQbEMSLy8HX6ZVWDCsR3nIWFnTUW4RNlThB%2FjuPFHlFnimxpoDeAjtS4XMd%2FASueyTxoNM0wKta7esXa8vJu%2FzqFtqZHx8msdQRz1BQEtfe0fHEs67222K2LRflk9kFNQI94i0yZYeI9KutVi0XsbFiWH3%2FBEhde1n0MHSursQ1kIY7RZK2wHhf3o%2B7x5oVaL9QnbDiQkMuyjv%2Fy4XinCNTvKEQOiVTV59%2F%2ByqeAFN6MeiMQMOZ%2FXUIJ8BopfFqoZ3eGAye7cR6%2BxokuOBIcdSyvWma5%2FP0W3KKltA%3D%3D',
-    'https://storage.googleapis.com/photo-beauty-24f63.appspot.com/profiles/resize_images/8RI6oK0CzJTVDAhPlm0xCZ0YsLP2_1080x1080?GoogleAccessId=photo-beauty-24f63%40appspot.gserviceaccount.com&Expires=33166281600&Signature=SlwxnVhUDDntvTyJMzpTqGtGHyb1%2BCj7aZRogdOa8Lvke1DQYQbEMSLy8HX6ZVWDCsR3nIWFnTUW4RNlThB%2FjuPFHlFnimxpoDeAjtS4XMd%2FASueyTxoNM0wKta7esXa8vJu%2FzqFtqZHx8msdQRz1BQEtfe0fHEs67222K2LRflk9kFNQI94i0yZYeI9KutVi0XsbFiWH3%2FBEhde1n0MHSursQ1kIY7RZK2wHhf3o%2B7x5oVaL9QnbDiQkMuyjv%2Fy4XinCNTvKEQOiVTV59%2F%2ByqeAFN6MeiMQMOZ%2FXUIJ8BopfFqoZ3eGAye7cR6%2BxokuOBIcdSyvWma5%2FP0W3KKltA%3D%3D',
-    'https://storage.googleapis.com/photo-beauty-24f63.appspot.com/profiles/resize_images/8RI6oK0CzJTVDAhPlm0xCZ0YsLP2_1080x1080?GoogleAccessId=photo-beauty-24f63%40appspot.gserviceaccount.com&Expires=33166281600&Signature=SlwxnVhUDDntvTyJMzpTqGtGHyb1%2BCj7aZRogdOa8Lvke1DQYQbEMSLy8HX6ZVWDCsR3nIWFnTUW4RNlThB%2FjuPFHlFnimxpoDeAjtS4XMd%2FASueyTxoNM0wKta7esXa8vJu%2FzqFtqZHx8msdQRz1BQEtfe0fHEs67222K2LRflk9kFNQI94i0yZYeI9KutVi0XsbFiWH3%2FBEhde1n0MHSursQ1kIY7RZK2wHhf3o%2B7x5oVaL9QnbDiQkMuyjv%2Fy4XinCNTvKEQOiVTV59%2F%2ByqeAFN6MeiMQMOZ%2FXUIJ8BopfFqoZ3eGAye7cR6%2BxokuOBIcdSyvWma5%2FP0W3KKltA%3D%3D',
-    'https://storage.googleapis.com/photo-beauty-24f63.appspot.com/profiles/resize_images/8RI6oK0CzJTVDAhPlm0xCZ0YsLP2_1080x1080?GoogleAccessId=photo-beauty-24f63%40appspot.gserviceaccount.com&Expires=33166281600&Signature=SlwxnVhUDDntvTyJMzpTqGtGHyb1%2BCj7aZRogdOa8Lvke1DQYQbEMSLy8HX6ZVWDCsR3nIWFnTUW4RNlThB%2FjuPFHlFnimxpoDeAjtS4XMd%2FASueyTxoNM0wKta7esXa8vJu%2FzqFtqZHx8msdQRz1BQEtfe0fHEs67222K2LRflk9kFNQI94i0yZYeI9KutVi0XsbFiWH3%2FBEhde1n0MHSursQ1kIY7RZK2wHhf3o%2B7x5oVaL9QnbDiQkMuyjv%2Fy4XinCNTvKEQOiVTV59%2F%2ByqeAFN6MeiMQMOZ%2FXUIJ8BopfFqoZ3eGAye7cR6%2BxokuOBIcdSyvWma5%2FP0W3KKltA%3D%3D',
-    'https://storage.googleapis.com/photo-beauty-24f63.appspot.com/profiles/resize_images/8RI6oK0CzJTVDAhPlm0xCZ0YsLP2_1080x1080?GoogleAccessId=photo-beauty-24f63%40appspot.gserviceaccount.com&Expires=33166281600&Signature=SlwxnVhUDDntvTyJMzpTqGtGHyb1%2BCj7aZRogdOa8Lvke1DQYQbEMSLy8HX6ZVWDCsR3nIWFnTUW4RNlThB%2FjuPFHlFnimxpoDeAjtS4XMd%2FASueyTxoNM0wKta7esXa8vJu%2FzqFtqZHx8msdQRz1BQEtfe0fHEs67222K2LRflk9kFNQI94i0yZYeI9KutVi0XsbFiWH3%2FBEhde1n0MHSursQ1kIY7RZK2wHhf3o%2B7x5oVaL9QnbDiQkMuyjv%2Fy4XinCNTvKEQOiVTV59%2F%2ByqeAFN6MeiMQMOZ%2FXUIJ8BopfFqoZ3eGAye7cR6%2BxokuOBIcdSyvWma5%2FP0W3KKltA%3D%3D',
-    'https://storage.googleapis.com/photo-beauty-24f63.appspot.com/profiles/resize_images/8RI6oK0CzJTVDAhPlm0xCZ0YsLP2_1080x1080?GoogleAccessId=photo-beauty-24f63%40appspot.gserviceaccount.com&Expires=33166281600&Signature=SlwxnVhUDDntvTyJMzpTqGtGHyb1%2BCj7aZRogdOa8Lvke1DQYQbEMSLy8HX6ZVWDCsR3nIWFnTUW4RNlThB%2FjuPFHlFnimxpoDeAjtS4XMd%2FASueyTxoNM0wKta7esXa8vJu%2FzqFtqZHx8msdQRz1BQEtfe0fHEs67222K2LRflk9kFNQI94i0yZYeI9KutVi0XsbFiWH3%2FBEhde1n0MHSursQ1kIY7RZK2wHhf3o%2B7x5oVaL9QnbDiQkMuyjv%2Fy4XinCNTvKEQOiVTV59%2F%2ByqeAFN6MeiMQMOZ%2FXUIJ8BopfFqoZ3eGAye7cR6%2BxokuOBIcdSyvWma5%2FP0W3KKltA%3D%3D',
-  ];
-
-  // Future<void> start() async {
-  //   favoriteCount = 0;
-  //   UserData.instance.accountPostCount = 0;
-  //   UserData.instance.account.clear();
-  //   if (mounted) {setState(() {});}
-  //   await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user).get()
-  //   .then((doc) {
-  //     UserData.instance.account.add(doc);
-  //     if (mounted) {setState(() {});}
-  //   });
-  //   await FirebaseFirestore.instance.collection('posts').where('post_uid', isEqualTo: UserData.instance.user).get()
-  //   .then((QuerySnapshot querySnapshot) {
-  //     querySnapshot.docs.forEach((doc) {
-  //       UserData.instance.accountPostCount += 1;
-  //       if (mounted) {setState(() {});}
-  //     });
-  //   });
-  // }
-  launchInApp() async {
+  Future<void> start() async {
+    await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user).get()
+    .then((doc) {
+      UserData.instance.account.clear();
+      UserData.instance.account.add(doc);
+      if (mounted) {setState(() {});}
+    });
+  }
+  Future<void> like() async {
+    UserData.instance.documentLikeList.clear();
+    await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user).get()
+    .then((doc) {
+      UserData.instance.documentLikeList = doc["user_likes"];
+      if (mounted) {setState(() {});}
+    });
+  }
+  launchInstagram() async {
     var url = 'https://www.instagram.com/${UserData.instance.account[0]["user_instagram"]}';
     if (await canLaunch(url)) {
       await launch(
@@ -75,8 +65,8 @@ class _AccountAccountMainState extends State<AccountAccountMain> {
       throw 'このURLにはアクセスできません';
     }
   }
-  launchInInstagram() async {
-    var url = 'https://www.instagram.com/memorii.photo';
+  launchTiktok() async {
+    var url = 'https://www.tiktok.com/@${UserData.instance.account[0]["user_tiktok"]}';
     if (await canLaunch(url)) {
       await launch(
         url,
@@ -87,7 +77,7 @@ class _AccountAccountMainState extends State<AccountAccountMain> {
       throw 'このURLにはアクセスできません';
     }
   }
-
+  
   @override
   Widget build(BuildContext context) {
     return Navigator(
@@ -108,17 +98,12 @@ class _AccountAccountMainState extends State<AccountAccountMain> {
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         minWidth: 0,
                         height: 0,
-                        child: TextButton(
-                          child: UserData.instance.account.length > 0 ? Text(
-                            UserData.instance.account[0]["user_instagram"] == "" ? "未登録" : UserData.instance.account[0]["user_instagram"],
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 15
-                            ),
-                          ) : Text(""),
-                          onPressed: () {
-                            launchInApp();
-                          },
+                        child: Text(
+                          'プロフィール',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15
+                          ),
                         ),
                       ),
                     ),
@@ -154,6 +139,7 @@ class _AccountAccountMainState extends State<AccountAccountMain> {
                                             context,
                                             MaterialPageRoute(builder: (context) => AccountImage(UserData.instance.account[0]["user_image_1080"])),
                                           );
+                                          start();
                                         },
                                       ),
                                     ),
@@ -174,6 +160,7 @@ class _AccountAccountMainState extends State<AccountAccountMain> {
                                             context,
                                             MaterialPageRoute(builder: (context) => AccountEdit()),
                                           );
+                                          start();
                                         },
                                       ),
                                     ),
@@ -234,7 +221,7 @@ class _AccountAccountMainState extends State<AccountAccountMain> {
                                         onPressed: () async {
                                           HapticFeedback.heavyImpact();
                                           Navigator.of(context).pop();
-                                          launchInInstagram();
+                                          launchInstagram();
                                         },
                                       ),
                                     ),
@@ -273,116 +260,397 @@ class _AccountAccountMainState extends State<AccountAccountMain> {
                     return [
                       SliverAppBar(
                         backgroundColor: Colors.white,
-                        collapsedHeight: 250,
-                        expandedHeight: 250,
+                        collapsedHeight: 280,
+                        expandedHeight: 280,
                         flexibleSpace: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Container(
-                              child: Container(
-                                child: Stack(
-                                  children: [
-                                    Container(
-                                      width: double.infinity,
-                                      height: 140,
-                                      color: Color(0xFFFF8D89),
-                                    ),
-                                    Stack(
-                                      children: [
-                                        Container(
-                                          width: 80.w,
-                                          margin: EdgeInsets.only(top: 80, right: 10.w, left: 10.w),
-                                          padding: EdgeInsets.only(bottom: 20,),
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(10),
-                                            color: Colors.white,
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.black12,
-                                                blurRadius: 20.0,
-                                                spreadRadius: 1.0,
-                                                offset: Offset(0, 0)
-                                              ),
-                                            ],
+                              child: StreamBuilder(
+                                stream: FirebaseFirestore.instance
+                                  .collection('posts')
+                                  .where('post_uid', isEqualTo: UserData.instance.user)
+                                  .orderBy("post_time", descending: true)
+                                  .snapshots(),
+                                builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                                  if (snapshot.hasData) {
+                                    return Container(
+                                      child: Stack(
+                                        children: [
+                                          Container(
+                                            width: double.infinity,
+                                            height: 140,
+                                            color: Color(0xFFFF8D89),
                                           ),
-                                          child: Column(
+                                          Stack(
                                             children: [
                                               Container(
-                                                margin: EdgeInsets.only(top: 60, right: 10.w, left: 10.w),
-                                                child: UserData.instance.account.length > 0 ? Text(
-                                                  UserData.instance.account[0]["user_name"] != "" ?
-                                                  UserData.instance.account[0]["user_name"] : "unnamed",
-                                                  textAlign: TextAlign.center,
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.black87,
-                                                    fontSize: 20,
-                                                  ),
-                                                ) : Text(""),
-                                              ),
-                                              Container(
-                                                margin: EdgeInsets.only(top: 0, right: 10.w, left: 10.w),
-                                                child: UserData.instance.account.length > 0 ? Text(
-                                                  UserData.instance.account[0]["user_short"],
-                                                  textAlign: TextAlign.center,
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.black26,
-                                                    fontSize: 12,
-                                                  ),
-                                                ) : Text(""),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        UserData.instance.account.length > 0 ?
-                                        UserData.instance.account[0]["user_image_500"] == "" ?
-                                        Container(
-                                          height: 110,
-                                          width: 30.w,
-                                          margin: EdgeInsets.only(top: 20, right: 35.w, left: 35.w),
-                                          padding: EdgeInsets.all(5.0),
-                                          decoration: BoxDecoration(
-                                            color: Color(0xFFFFFFFF),
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                              color: Colors.white,
-                                              width: 5,
-                                            ),
-                                            image: DecorationImage(
-                                              fit: BoxFit.cover,
-                                              image: FileImage(
-                                                File(
-                                                  UserData.instance.account[0]["user_image_path"].replaceFirst('File: \'', '').replaceFirst('\'', ''),
+                                                width: 80.w,
+                                                margin: EdgeInsets.only(top: 80, right: 10.w, left: 10.w),
+                                                padding: EdgeInsets.only(bottom: 20,),
+                                                decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(10),
+                                                  color: Colors.white,
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black12,
+                                                      blurRadius: 20.0,
+                                                      spreadRadius: 1.0,
+                                                      offset: Offset(0, 0)
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: Column(
+                                                  children: [
+                                                    Container(
+                                                      margin: EdgeInsets.only(top: 60, right: 10.w, left: 10.w, bottom: 5,),
+                                                      child: UserData.instance.account.length > 0 ? Text(
+                                                        UserData.instance.account[0]["user_name"] != "" ?
+                                                        UserData.instance.account[0]["user_name"] : "unnamed",
+                                                        textAlign: TextAlign.center,
+                                                        style: TextStyle(
+                                                          fontWeight: FontWeight.bold,
+                                                          color: Colors.black87,
+                                                          fontSize: 20,
+                                                        ),
+                                                      ) : Text(""),
+                                                    ),
+                                                    Container(
+                                                      margin: EdgeInsets.only(top: 0, right: 10.w, left: 10.w),
+                                                      child: UserData.instance.account.length > 0 ? Text(
+                                                        UserData.instance.account[0]["user_text"],
+                                                        textAlign: TextAlign.center,
+                                                        style: TextStyle(
+                                                          fontWeight: FontWeight.bold,
+                                                          color: Colors.black26,
+                                                          fontSize: 12,
+                                                        ),
+                                                      ) : Text(""),
+                                                    ),
+                                                    Container(
+                                                      width: double.infinity,
+                                                      margin: EdgeInsets.only(top: 15, right: 20.w, left: 20.w),
+                                                      child: Row(
+                                                        children: [   
+                                                          Spacer(),                                              
+                                                          UserData.instance.account[0]['user_instagram'] == '' ? Container() :
+                                                          GestureDetector(
+                                                            child: Container(
+                                                              width: 28,
+                                                              height: 28,
+                                                              margin: EdgeInsets.only(right: 8, left: 8,),
+                                                              decoration: BoxDecoration(
+                                                                borderRadius: BorderRadius.circular(5),
+                                                                gradient: LinearGradient(
+                                                                  begin: Alignment.topRight,
+                                                                  end: Alignment.bottomLeft,
+                                                                  stops: [
+                                                                    0.1,
+                                                                    0.2,
+                                                                    0.3,
+                                                                    0.4,
+                                                                    0.5,
+                                                                    0.6,
+                                                                    0.7,
+                                                                    0.8,
+                                                                    0.9,
+                                                                    1.0,
+                                                                  ],
+                                                                  colors: [
+                                                                    Color(0xFF405DE6),
+                                                                    Color(0xFF5851DB),
+                                                                    Color(0xFF833AB4),
+                                                                    Color(0xFFC13584),
+                                                                    Color(0xFFE1306C),
+                                                                    Color(0xFFFD1D1D),
+                                                                    Color(0xFFF56040),
+                                                                    Color(0xFFF77737),
+                                                                    Color(0xFFFCAF45),
+                                                                    Color(0xFFFFDC80),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                              child: Center(
+                                                                child: FaIcon(
+                                                                  FontAwesomeIcons.instagram,
+                                                                  color: Colors.white,
+                                                                  size: 25,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            onTap: () {
+                                                              launchInstagram();
+                                                            },
+                                                          ),
+                                                          UserData.instance.account[0]['user_tiktok'] == '' ? Container() :
+                                                          GestureDetector(
+                                                            child: Container(
+                                                              width: 28,
+                                                              height: 28,
+                                                              margin: EdgeInsets.only(right: 8, left: 8,),
+                                                              decoration: BoxDecoration(
+                                                                color: Colors.black87,
+                                                                borderRadius: BorderRadius.circular(7),
+                                                              ),
+                                                              child: Center(
+                                                                child: FaIcon(
+                                                                  FontAwesomeIcons.tiktok,
+                                                                  color: Colors.white,
+                                                                  size: 20,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            onTap: () {
+                                                              launchTiktok();
+                                                            },
+                                                          ),
+                                                          Spacer(),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
                                               ),
-                                            ),
+                                              UserData.instance.account.length > 0 ?
+                                              UserData.instance.account[0]["user_image_500"] == "" ?
+                                              Container(
+                                                height: 110,
+                                                width: 30.w,
+                                                margin: EdgeInsets.only(top: 20, right: 35.w, left: 35.w),
+                                                padding: EdgeInsets.all(5.0),
+                                                decoration: BoxDecoration(
+                                                  color: Color(0xFFFFFFFF),
+                                                  shape: BoxShape.circle,
+                                                  border: Border.all(
+                                                    color: Colors.white,
+                                                    width: 5,
+                                                  ),
+                                                  image: DecorationImage(
+                                                    fit: BoxFit.cover,
+                                                    image: FileImage(
+                                                      File(
+                                                        UserData.instance.account[0]["user_image_path"].replaceFirst('File: \'', '').replaceFirst('\'', ''),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              )
+                                              :
+                                              Container(
+                                                height: 110,
+                                                width: 30.w,
+                                                margin: EdgeInsets.only(top: 20, right: 35.w, left: 35.w),
+                                                child: CircleAvatar(
+                                                  radius: 100,
+                                                  backgroundColor: Colors.white,
+                                                  backgroundImage: NetworkImage(
+                                                    UserData.instance.account[0]["user_image_500"],
+                                                  ),
+                                                ),
+                                                padding: EdgeInsets.all(5.0),
+                                                decoration: BoxDecoration(
+                                                  color: Color(0xFFFFFFFF),
+                                                  shape: BoxShape.circle,
+                                                )
+                                              ) : Container(),
+                                            ]
                                           ),
-                                        )
-                                        :
-                                        Container(
-                                          height: 110,
-                                          width: 30.w,
-                                          margin: EdgeInsets.only(top: 20, right: 35.w, left: 35.w),
-                                          child: CircleAvatar(
-                                            radius: 100,
-                                            backgroundColor: Colors.white,
-                                            backgroundImage: NetworkImage(
-                                              UserData.instance.account[0]["user_image_500"],
-                                            ),
-                                          ),
-                                          padding: EdgeInsets.all(5.0),
-                                          decoration: BoxDecoration(
-                                            color: Color(0xFFFFFFFF),
-                                            shape: BoxShape.circle,
-                                          )
-                                        ) : Container(),
-                                      ]
-                                    ),
-                                  ],
-                                ),
+                                        ],
+                                      ),
+                                    );
+                                  } else {
+                                    return Container();
+                                  }
+                                },
                               ),
                             ),
+
+                            // Container(
+                            //   child: Container(
+                            //     child: Stack(
+                            //       children: [
+                            //         Container(
+                            //           width: double.infinity,
+                            //           height: 140,
+                            //           color: Color(0xFFFF8D89),
+                            //         ),
+                            //         Stack(
+                            //           children: [
+                            //             Container(
+                            //               width: 80.w,
+                            //               margin: EdgeInsets.only(top: 80, right: 10.w, left: 10.w),
+                            //               padding: EdgeInsets.only(bottom: 20,),
+                            //               decoration: BoxDecoration(
+                            //                 borderRadius: BorderRadius.circular(10),
+                            //                 color: Colors.white,
+                            //                 boxShadow: [
+                            //                   BoxShadow(
+                            //                     color: Colors.black12,
+                            //                     blurRadius: 20.0,
+                            //                     spreadRadius: 1.0,
+                            //                     offset: Offset(0, 0)
+                            //                   ),
+                            //                 ],
+                            //               ),
+                            //               child: Column(
+                            //                 children: [
+                            //                   Container(
+                            //                     margin: EdgeInsets.only(top: 60, right: 10.w, left: 10.w, bottom: 5,),
+                            //                     child: UserData.instance.account.length > 0 ? Text(
+                            //                       UserData.instance.account[0]["user_name"] != "" ?
+                            //                       UserData.instance.account[0]["user_name"] : "unnamed",
+                            //                       textAlign: TextAlign.center,
+                            //                       style: TextStyle(
+                            //                         fontWeight: FontWeight.bold,
+                            //                         color: Colors.black87,
+                            //                         fontSize: 20,
+                            //                       ),
+                            //                     ) : Text(""),
+                            //                   ),
+                            //                   Container(
+                            //                     margin: EdgeInsets.only(top: 0, right: 10.w, left: 10.w),
+                            //                     child: UserData.instance.account.length > 0 ? Text(
+                            //                       UserData.instance.account[0]["user_text"],
+                            //                       textAlign: TextAlign.center,
+                            //                       style: TextStyle(
+                            //                         fontWeight: FontWeight.bold,
+                            //                         color: Colors.black26,
+                            //                         fontSize: 12,
+                            //                       ),
+                            //                     ) : Text(""),
+                            //                   ),
+                            //                   Container(
+                            //                     width: double.infinity,
+                            //                     margin: EdgeInsets.only(top: 15, right: 20.w, left: 20.w),
+                            //                     child: Row(
+                            //                       children: [   
+                            //                         Spacer(),                                              
+                            //                         UserData.instance.account[0]['user_instagram'] == '' ? Container() :
+                            //                         GestureDetector(
+                            //                           child: Container(
+                            //                             width: 28,
+                            //                             height: 28,
+                            //                             margin: EdgeInsets.only(right: 8, left: 8,),
+                            //                             decoration: BoxDecoration(
+                            //                               borderRadius: BorderRadius.circular(5),
+                            //                               gradient: LinearGradient(
+                            //                                 begin: Alignment.topRight,
+                            //                                 end: Alignment.bottomLeft,
+                            //                                 stops: [
+                            //                                   0.1,
+                            //                                   0.2,
+                            //                                   0.3,
+                            //                                   0.4,
+                            //                                   0.5,
+                            //                                   0.6,
+                            //                                   0.7,
+                            //                                   0.8,
+                            //                                   0.9,
+                            //                                   1.0,
+                            //                                 ],
+                            //                                 colors: [
+                            //                                   Color(0xFF405DE6),
+                            //                                   Color(0xFF5851DB),
+                            //                                   Color(0xFF833AB4),
+                            //                                   Color(0xFFC13584),
+                            //                                   Color(0xFFE1306C),
+                            //                                   Color(0xFFFD1D1D),
+                            //                                   Color(0xFFF56040),
+                            //                                   Color(0xFFF77737),
+                            //                                   Color(0xFFFCAF45),
+                            //                                   Color(0xFFFFDC80),
+                            //                                 ],
+                            //                               ),
+                            //                             ),
+                            //                             child: Center(
+                            //                               child: FaIcon(
+                            //                                 FontAwesomeIcons.instagram,
+                            //                                 color: Colors.white,
+                            //                                 size: 25,
+                            //                               ),
+                            //                             ),
+                            //                           ),
+                            //                           onTap: () {
+                            //                             launchInstagram();
+                            //                           },
+                            //                         ),
+                            //                         UserData.instance.account[0]['user_tiktok'] == '' ? Container() :
+                            //                         GestureDetector(
+                            //                           child: Container(
+                            //                             width: 28,
+                            //                             height: 28,
+                            //                             margin: EdgeInsets.only(right: 8, left: 8,),
+                            //                             decoration: BoxDecoration(
+                            //                               color: Colors.black87,
+                            //                               borderRadius: BorderRadius.circular(7),
+                            //                             ),
+                            //                             child: Center(
+                            //                               child: FaIcon(
+                            //                                 FontAwesomeIcons.tiktok,
+                            //                                 color: Colors.white,
+                            //                                 size: 20,
+                            //                               ),
+                            //                             ),
+                            //                           ),
+                            //                           onTap: () {
+                            //                             launchTiktok();
+                            //                           },
+                            //                         ),
+                            //                         Spacer(),
+                            //                       ],
+                            //                     ),
+                            //                   ),
+                            //                 ],
+                            //               ),
+                            //             ),
+                            //             UserData.instance.account.length > 0 ?
+                            //             UserData.instance.account[0]["user_image_500"] == "" ?
+                            //             Container(
+                            //               height: 110,
+                            //               width: 30.w,
+                            //               margin: EdgeInsets.only(top: 20, right: 35.w, left: 35.w),
+                            //               padding: EdgeInsets.all(5.0),
+                            //               decoration: BoxDecoration(
+                            //                 color: Color(0xFFFFFFFF),
+                            //                 shape: BoxShape.circle,
+                            //                 border: Border.all(
+                            //                   color: Colors.white,
+                            //                   width: 5,
+                            //                 ),
+                            //                 image: DecorationImage(
+                            //                   fit: BoxFit.cover,
+                            //                   image: FileImage(
+                            //                     File(
+                            //                       UserData.instance.account[0]["user_image_path"].replaceFirst('File: \'', '').replaceFirst('\'', ''),
+                            //                     ),
+                            //                   ),
+                            //                 ),
+                            //               ),
+                            //             )
+                            //             :
+                            //             Container(
+                            //               height: 110,
+                            //               width: 30.w,
+                            //               margin: EdgeInsets.only(top: 20, right: 35.w, left: 35.w),
+                            //               child: CircleAvatar(
+                            //                 radius: 100,
+                            //                 backgroundColor: Colors.white,
+                            //                 backgroundImage: NetworkImage(
+                            //                   UserData.instance.account[0]["user_image_500"],
+                            //                 ),
+                            //               ),
+                            //               padding: EdgeInsets.all(5.0),
+                            //               decoration: BoxDecoration(
+                            //                 color: Color(0xFFFFFFFF),
+                            //                 shape: BoxShape.circle,
+                            //               )
+                            //             ) : Container(),
+                            //           ]
+                            //         ),
+                            //       ],
+                            //     ),
+                            //   ),
+                            // ),
                           ],
                         ),
                       ),
@@ -393,19 +661,19 @@ class _AccountAccountMainState extends State<AccountAccountMain> {
                               Tab(
                                 child: Align(
                                   alignment: Alignment.center,
-                                  child: Text("Photos"),
+                                  child: Text("作品撮り"),
                                 ),
                               ),
                               Tab(
                                 child: Align(
                                   alignment: Alignment.center,
-                                  child: Text("Tweets"),
+                                  child: Text("ツイート"),
                                 ),
                               ),
                               Tab(
                                 child: Align(
                                   alignment: Alignment.center,
-                                  child: Text("Likes"),
+                                  child: Text("いいね"),
                                 ),
                               ),
                             ],
@@ -433,8 +701,6 @@ class _AccountAccountMainState extends State<AccountAccountMain> {
                           builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                             if (snapshot.hasData) {
                               return GridView.count(
-                                // physics: NeverScrollableScrollPhysics(),
-                                // shrinkWrap: true,
                                 physics: BouncingScrollPhysics(
                                   parent: AlwaysScrollableScrollPhysics()
                                 ),
@@ -448,42 +714,112 @@ class _AccountAccountMainState extends State<AccountAccountMain> {
                                         AspectRatio(
                                           aspectRatio: 11.0 / 11.0,
                                           child: document["post_image_500"] == "" ?
-                                          GestureDetector(
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                image: DecorationImage(
-                                                  fit: BoxFit.cover,
-                                                  image: FileImage(
-                                                    File(
-                                                      document["post_image_path"].replaceFirst('File: \'', '').replaceFirst('\'', ''),
-                                                    ),
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              image: DecorationImage(
+                                                fit: BoxFit.cover,
+                                                image: FileImage(
+                                                  File(
+                                                    document["post_image_path"].replaceFirst('File: \'', '').replaceFirst('\'', ''),
                                                   ),
-                                                ), 
-                                              ),
+                                                ),
+                                              ), 
                                             ),
-                                            onTap: () async {
-                                              await Navigator.push(
-                                                context,MaterialPageRoute(builder: (context) => PhotoEdit(document.id)),
-                                              );
-                                              // start();
-                                            },
                                           )
                                           :
-                                          GestureDetector(
-                                            child: ClipRRect(
-                                              borderRadius: BorderRadius.circular(5.0),
-                                              child: Image.network(
-                                                document["post_image_500"],
-                                                fit: BoxFit.cover,
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(5.0),
+                                            child: Image.network(
+                                              document["post_image_500"],
+                                              fit: BoxFit.cover,
+                                            ),
+                                          ),
+                                        ),
+                                        GestureDetector(
+                                          child: Align(
+                                            alignment: Alignment.topRight,
+                                            child: Container(
+                                              margin: EdgeInsets.only(right: 5,),
+                                              child: Icon(
+                                                Icons.more_horiz,
+                                                color: Colors.black87,
                                               ),
                                             ),
-                                            onTap: () async {
-                                              await Navigator.push(
-                                                context,MaterialPageRoute(builder: (context) => PhotoEdit(document.id)),
-                                              );
-                                              // start();
-                                            },
                                           ),
+                                          onTap: () async {
+                                            await showCupertinoModalPopup(
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                return CupertinoActionSheet(
+                                                  actions: [
+                                                    Container(
+                                                      color: Colors.black87,
+                                                      child: CupertinoActionSheetAction(
+                                                        child: Text(
+                                                          '削除',
+                                                          style: TextStyle(
+                                                            color: Colors.red,
+                                                            fontSize: 15,
+                                                            fontWeight: FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                        onPressed: () async {
+                                                          HapticFeedback.heavyImpact();
+                                                          await FirebaseStorage.instance.ref("image/resize_images")
+                                                            .child('${document["post_image_name"]}_500x500').delete();
+                                                          await FirebaseStorage.instance.ref("image/resize_images")
+                                                            .child('${document["post_image_name"]}_1080x1080').delete();
+                                                          await FirebaseFirestore.instance.collection("posts").doc(document.id).delete();
+                                                          await FirebaseFirestore.instance.collection('users').where('user_likes', arrayContains: document.id).get()
+                                                            .then((QuerySnapshot querySnapshot) {
+                                                              querySnapshot.docs.forEach((doc) {
+                                                                print(doc.id);
+                                                                FirebaseFirestore.instance.collection('users')
+                                                                  .doc(doc.id)
+                                                                  .update({
+                                                                    'user_likes': FieldValue.arrayRemove([document.id,])
+                                                                  });
+                                                              });
+                                                            });
+                                                        },
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      color: Colors.black87,
+                                                      child: CupertinoActionSheetAction(
+                                                        child: Text(
+                                                          '編集',
+                                                          style: TextStyle(
+                                                            color: Colors.red,
+                                                            fontSize: 15,
+                                                            fontWeight: FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                        onPressed: () async {
+                                                          await Navigator.push(
+                                                            context,MaterialPageRoute(builder: (context) => PhotoEdit(document.id)),
+                                                          );
+                                                        },
+                                                      ),
+                                                    ),
+                                                  ],
+                                                  cancelButton: CupertinoButton(
+                                                    color: Colors.black87,
+                                                    child: Text(
+                                                      'キャンセル',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 15,
+                                                      ),
+                                                    ),
+                                                    onPressed: () {
+                                                      Navigator.of(context).pop();
+                                                    }
+                                                  ),
+                                                );
+                                              },
+                                            );
+                                          },
                                         ),
                                       ],
                                     ),
@@ -512,159 +848,110 @@ class _AccountAccountMainState extends State<AccountAccountMain> {
                                   itemCount: snapshot.data!.docs.length,
                                   itemBuilder: (document, index) {
                                     return Container(
-                                      margin: EdgeInsets.only(right: 10.w, left: 10.w,),
+                                      margin: EdgeInsets.only(top: 5, bottom: 5, right: 10.w, left: 10.w,),
                                       padding: EdgeInsets.only(top: 10, bottom: 10, right: 10, left: 10,),
                                       decoration: BoxDecoration(
-                                        border: Border(
-                                          bottom: BorderSide(
-                                            color: Colors.black12,
-                                            width: 1,
-                                          ),
+                                        border: Border.all(
+                                          color: Colors.black12,
+                                          width: 1,
                                         ),
+                                        borderRadius: BorderRadius.circular(10),
                                       ),
                                       child: Column(
                                         children: [
-                                          Stack(
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                             children: [
-                                              Row(
-                                                children: [
-                                                  // Column(
-                                                  //   children: [
-                                                  //     Container(
-                                                  //       height: 60,
-                                                  //       width: 60,
-                                                  //       margin: EdgeInsets.only(right: 15,),
-                                                  //     ),
-                                                  //   ]
-                                                  // ),
-                                                  Column(
-                                                    children: [
-                                                      Container(
-                                                        width: 74.w,
-                                                        child: Text(
-                                                          snapshot.data!.docs[index]["tweet_name"],
-                                                          textAlign: TextAlign.left,
-                                                          style: TextStyle(
-                                                            fontWeight: FontWeight.bold,
-                                                            fontSize: 15,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      Container(
-                                                        width: 74.w,
-                                                        child: Linkable(
-                                                          text: snapshot.data!.docs[index]["tweet_text"],
-                                                          textColor: Colors.black87,
-                                                          style: TextStyle(
-                                                            fontSize: 14,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      snapshot.data!.docs[index]["tweet_photo_1080"] != '' ? Container(
-                                                        width: 74.w,
-                                                        height: 74.w,
-                                                        margin: EdgeInsets.only(top: 5,),
-                                                        child: ClipRRect(
-                                                          borderRadius: BorderRadius.circular(5.0),
-                                                          child: Image.network(
-                                                            snapshot.data!.docs[index]["tweet_photo_1080"],
-                                                            fit: BoxFit.cover,
-                                                          ),
-                                                        ),
-                                                      ) : Container(),
-                                                      Container(
-                                                        width: 74.w,
-                                                        child: Row(
-                                                          mainAxisAlignment: MainAxisAlignment.start,
-                                                          children: [
-                                                            // GestureDetector(
-                                                            //   child: Container(
-                                                            //     padding: EdgeInsets.only(top: 5, bottom: 5, right: 5.w, left: 5.w,),
-                                                            //     margin: EdgeInsets.only(top: 10, left: 0),
-                                                            //     decoration: BoxDecoration(
-                                                            //       border: Border.all(
-                                                            //         color: Color(0xFFFF8D89),
-                                                            //         width: 1,
-                                                            //       ),
-                                                            //       borderRadius: BorderRadius.circular(5),
-                                                            //     ),
-                                                            //     child: Text(
-                                                            //       'instagram',
-                                                            //       style: TextStyle(
-                                                            //         color: Color(0xFFFF8D89),
-                                                            //         fontSize: 12,
-                                                            //         fontWeight: FontWeight.bold,
-                                                            //       ),
-                                                            //     ),
-                                                            //   ),
-                                                            //   onTap: () async {
-                                                            //     var url = 'https://www.instagram.com/${snapshot.data!.docs[index]["tweet_instagram"]}';
-                                                            //     if (await canLaunch(url)) {
-                                                            //       await launch(
-                                                            //         url,
-                                                            //         forceSafariVC: true,
-                                                            //         forceWebView: true,
-                                                            //       );
-                                                            //     } else {
-                                                            //       throw 'このURLにはアクセスできません';
-                                                            //     }
-                                                            //   }
-                                                            // ),
-                                                            // GestureDetector(
-                                                            //   child: Container(
-                                                            //     padding: EdgeInsets.only(top: 5, bottom: 5, right: 5.w, left: 5.w,),
-                                                            //     margin: EdgeInsets.only(top: 10, left: 10,),
-                                                            //     decoration: BoxDecoration(
-                                                            //       color: Colors.white,
-                                                            //       border: Border.all(
-                                                            //         color: Color(0xFFFF8D89),
-                                                            //         width: 1,
-                                                            //       ),
-                                                            //       borderRadius: BorderRadius.circular(5),
-                                                            //     ),
-                                                            //     child: Text(
-                                                            //       'tiktok',
-                                                            //       // UserData.instance.account[0]["user_instagram"],
-                                                            //       style: TextStyle(
-                                                            //         color: Color(0xFFFF8D89),
-                                                            //         fontSize: 12,
-                                                            //         fontWeight: FontWeight.bold,
-                                                            //       ),
-                                                            //     ),
-                                                            //   ),
-                                                            //   onTap: () async {
-                                                            //     var url = 'https://www.tiktok.com/@${snapshot.data!.docs[index]["tweet_tiktok"]}';
-                                                            //     if (await canLaunch(url)) {
-                                                            //       await launch(
-                                                            //         url,
-                                                            //         forceSafariVC: true,
-                                                            //         forceWebView: true,
-                                                            //       );
-                                                            //     } else {
-                                                            //       throw 'このURLにはアクセスできません';
-                                                            //     }
-                                                            //   },
-                                                            // ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ],
+                                              Container(
+                                                width: 50.w,
+                                                child: Text(
+                                                  snapshot.data!.docs[index]["tweet_name"],
+                                                  textAlign: TextAlign.left,
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 15,
                                                   ),
-                                                ],
+                                                ),
                                               ),
-                                              // Container(
-                                              //   height: 60,
-                                              //   width: 60,
-                                              //   margin: EdgeInsets.only(right: 10,),
-                                              //   child: CircleAvatar(
-                                              //     radius: 100,
-                                              //     backgroundImage: NetworkImage(
-                                              //       snapshot.data!.docs[index]["tweet_image_500"],
-                                              //     ),
-                                              //   ),
-                                              // ),
+                                              Spacer(),
+                                              GestureDetector(
+                                                child: Icon(
+                                                  Icons.more_horiz,
+                                                  color: Colors.black87,
+                                                ),
+                                                onTap: () async {
+                                                  await showCupertinoModalPopup(
+                                                    context: context,
+                                                    builder: (BuildContext context) {
+                                                      return CupertinoActionSheet(
+                                                        actions: [
+                                                          Container(
+                                                            color: Colors.black87,
+                                                            child: CupertinoActionSheetAction(
+                                                              child: Text(
+                                                                '削除',
+                                                                style: TextStyle(
+                                                                  color: Colors.red,
+                                                                  fontSize: 15,
+                                                                  fontWeight: FontWeight.bold,
+                                                                ),
+                                                              ),
+                                                              onPressed: () async {
+                                                                HapticFeedback.heavyImpact();
+                                                                Navigator.of(context).pop();
+                                                                if (snapshot.data!.docs[index]["tweet_photo"] != '') {
+                                                                  await FirebaseStorage.instance.ref("image/resize_images")
+                                                                    .child('${snapshot.data!.docs[index]["tweet_photo"]}_500x500').delete();
+                                                                  await FirebaseStorage.instance.ref("image/resize_images")
+                                                                    .child('${snapshot.data!.docs[index]["tweet_photo"]}_1080x1080').delete();
+                                                                }
+                                                                await FirebaseFirestore.instance.collection("tweets").doc(snapshot.data!.docs[index].id).delete();
+                                                              },
+                                                            ),
+                                                          ),
+                                                        ],
+                                                        cancelButton: CupertinoButton(
+                                                          color: Colors.black87,
+                                                          child: Text(
+                                                            'キャンセル',
+                                                            style: TextStyle(
+                                                              color: Colors.white,
+                                                              fontSize: 15,
+                                                            ),
+                                                          ),
+                                                          onPressed: () {
+                                                            Navigator.of(context).pop();
+                                                          }
+                                                        ),
+                                                      );
+                                                    },
+                                                  );
+                                                },
+                                              ),
                                             ],
                                           ),
+                                          Container(
+                                            width: 74.w,
+                                            child: Linkable(
+                                              text: snapshot.data!.docs[index]["tweet_text"],
+                                              textColor: Colors.black87,
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                          ),
+                                          snapshot.data!.docs[index]["tweet_photo_1080"] != '' ? Container(
+                                            width: 74.w,
+                                            height: 74.w,
+                                            margin: EdgeInsets.only(top: 5,),
+                                            child: ClipRRect(
+                                              borderRadius: BorderRadius.circular(5.0),
+                                              child: Image.network(
+                                                snapshot.data!.docs[index]["tweet_photo_1080"],
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ),
+                                          ) : Container(),
                                         ],
                                       ),
                                     );
@@ -688,8 +975,6 @@ class _AccountAccountMainState extends State<AccountAccountMain> {
                           builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                             if (snapshot.hasData) {
                               return GridView.count(
-                                // physics: NeverScrollableScrollPhysics(),
-                                // shrinkWrap: true,
                                 crossAxisCount: 2,
                                 childAspectRatio: 7.0 / 7.0,
                                 children: snapshot.data!.docs.map((document) {
@@ -699,42 +984,13 @@ class _AccountAccountMainState extends State<AccountAccountMain> {
                                       children: <Widget>[
                                         AspectRatio(
                                           aspectRatio: 11.0 / 11.0,
-                                          child: document["post_image_500"] == "" ?
-                                          GestureDetector(
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                image: DecorationImage(
-                                                  fit: BoxFit.cover,
-                                                  image: FileImage(
-                                                    File(
-                                                      document["post_image_path"].replaceFirst('File: \'', '').replaceFirst('\'', ''),
-                                                    ),
-                                                  ),
-                                                ), 
-                                              ),
+                                          child: document["post_image_500"] == "" ? Container() :
+                                           ClipRRect(
+                                            borderRadius: BorderRadius.circular(5.0),
+                                            child: Image.network(
+                                              document["post_image_500"],
+                                              fit: BoxFit.cover,
                                             ),
-                                            onTap: () async {
-                                              await Navigator.push(
-                                                context,MaterialPageRoute(builder: (context) => PhotoEdit(document.id)),
-                                              );
-                                              // start();
-                                            },
-                                          )
-                                          :
-                                          GestureDetector(
-                                            child: ClipRRect(
-                                              borderRadius: BorderRadius.circular(5.0),
-                                              child: Image.network(
-                                                document["post_image_500"],
-                                                fit: BoxFit.cover,
-                                              ),
-                                            ),
-                                            onTap: () async {
-                                              await Navigator.push(
-                                                context,MaterialPageRoute(builder: (context) => PhotoEdit(document.id)),
-                                              );
-                                              // start();
-                                            },
                                           ),
                                         ),
                                       ],
@@ -761,6 +1017,7 @@ class _AccountAccountMainState extends State<AccountAccountMain> {
 }
 
 class MyDelegate extends SliverPersistentHeaderDelegate{
+
   MyDelegate(this.tabBar);
   final TabBar tabBar;
 

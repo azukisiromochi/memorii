@@ -158,10 +158,10 @@ class _AuthMainState extends State<AuthMain> {
                 children: [
                   Container(
                     height: 100.h,
-                    child: Image.network(
-                      "https://firebasestorage.googleapis.com/v0/b/photo-beauty-24f63.appspot.com/o/app-use%2Fresize_images%2F1.png?alt=media&token=d5e3c2b1-5285-48ff-8452-23f627b11577",
+                    child: Image.asset(
+                      'assets/auth.png',
                       fit: BoxFit.cover,
-                    ),
+                    )
                   ),
                   Container(
                     margin: EdgeInsets.only(top: 80,left: 40.w, right: 40.w,),
@@ -169,10 +169,8 @@ class _AuthMainState extends State<AuthMain> {
                     height: 20.w,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8.0),
-                      child: Container(
-                        child: Image.network(
-                        'https://firebasestorage.googleapis.com/v0/b/photo-beauty-24f63.appspot.com/o/app-use%2Fresize_images%2FFrame%20117-1_500x500.webp?alt=media&token=ebdce0a7-eed9-4c34-b986-896d751fb116'
-                        ),
+                      child: Image.asset(
+                        'assets/splash.png',
                       ),
                     ),
                   ),
@@ -208,8 +206,8 @@ class _AuthMainState extends State<AuthMain> {
                                   margin: EdgeInsets.only(top: 5, bottom: 5,),
                                   width: 10.w,
                                   height: 20,
-                                  child: Image.network(
-                                    'https://firebasestorage.googleapis.com/v0/b/photo-beauty-24f63.appspot.com/o/image%2Fresize_images%2Fsearch_500x500.webp?alt=media&token=2164cb17-a405-41fb-845a-993f3fda43f4'
+                                  child: Image.asset(
+                                    'assets/apple.png',
                                   ),
                                 ),
                                 Row(
@@ -218,7 +216,7 @@ class _AuthMainState extends State<AuthMain> {
                                       margin: EdgeInsets.only(right: 10.w,),
                                       width: 60.w,
                                       child: Text(
-                                        "sign in with google",
+                                        "sign in with apple",
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
@@ -249,7 +247,7 @@ class _AuthMainState extends State<AuthMain> {
                                         ),
                                         onPressed: () async {
                                           Navigator.of(context).pop();
-                                          signInWithGoogle();
+                                          signInWithApple();
                                         },
                                       ),
                                     ),
@@ -302,8 +300,8 @@ class _AuthMainState extends State<AuthMain> {
                                   margin: EdgeInsets.only(top: 5, bottom: 5,),
                                   width: 10.w,
                                   height: 20,
-                                  child: Image.network(
-                                    'https://firebasestorage.googleapis.com/v0/b/photo-beauty-24f63.appspot.com/o/app-use%2Fresize_images%2Fapple_500x500.webp?alt=media&token=a996d8a3-2b58-4ccf-9ddf-cfbab42c0170'
+                                  child: Image.asset(
+                                    'assets/google.png',
                                   ),
                                 ),
                                 Row(
@@ -312,7 +310,7 @@ class _AuthMainState extends State<AuthMain> {
                                       margin: EdgeInsets.only(right: 10.w,),
                                       width: 60.w,
                                       child: Text(
-                                        "sign in with apple",
+                                        "sign in with google",
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
@@ -343,7 +341,7 @@ class _AuthMainState extends State<AuthMain> {
                                         ),
                                         onPressed: () async {
                                           Navigator.of(context).pop();
-                                          signInWithApple();
+                                          signInWithGoogle();
                                         },
                                       ),
                                     ),

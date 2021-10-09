@@ -36,24 +36,7 @@ class _MyAppState extends State<MyApp> {
     if (FirebaseAuth.instance.currentUser != null) {
       UserData.instance.user = FirebaseAuth.instance.currentUser!.uid;
       if (mounted) {setState(() {});}
-      start();
     }
-  }
-
-  Future<void> start() async {
-    await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user).get()
-    .then((doc) {
-      UserData.instance.account.add(doc);
-      if (mounted) {setState(() {});}
-    });
-
-    await FirebaseFirestore.instance.collection('posts').orderBy("post_count", descending: true).get()
-    .then((QuerySnapshot querySnapshot) {
-      querySnapshot.docs.forEach((doc) {
-        UserData.instance.documentList.add(doc);
-        if (mounted) {setState(() {});}
-      });
-    });
   }
 
   @override
@@ -102,143 +85,18 @@ class _NavState extends State<Nav> {
   @override
   void initState() {
     super.initState();
-
+    start();
     _widgetOptions = <Widget>[
       PhotoMain(onTap),
       Twitter(),
       AccountAccountMain(),
     ];
-  
-    start();
   }
 
   Future<void> start() async {
-    like();all();men();ladies();street();classic();mode();feminin();grunge();annui();rock();creative();
-  }
-  Future<void> all() async {
-    await FirebaseFirestore.instance.collection('posts').orderBy("post_count", descending: true).get()
-    .then((QuerySnapshot querySnapshot) {
-      querySnapshot.docs.forEach((doc) {
-        UserData.instance.listAll.add(doc);
-        if (mounted) {setState(() {});}
-      });
-    });
-  }
-  Future<void> men() async {
-    await FirebaseFirestore.instance.collection('posts')
-    .where('post_tags', arrayContains: 'メンズ')
-    .orderBy("post_count", descending: true).get()
-    .then((QuerySnapshot querySnapshot) {
-      querySnapshot.docs.forEach((doc) {
-        UserData.instance.listMen.add(doc);
-        if (mounted) {setState(() {});}
-      });
-    });
-  }
-  Future<void> ladies() async {
-    await FirebaseFirestore.instance.collection('posts')
-    .where('post_tags', arrayContains: 'レディース')
-    .orderBy("post_count", descending: true).get()
-    .then((QuerySnapshot querySnapshot) {
-      querySnapshot.docs.forEach((doc) {
-        UserData.instance.listLadies.add(doc);
-        if (mounted) {setState(() {});}
-      });
-    });
-  }
-  Future<void> street() async {
-    await FirebaseFirestore.instance.collection('posts')
-    .where('post_tags', arrayContains: 'ストリート')
-    .orderBy("post_count", descending: true).get()
-    .then((QuerySnapshot querySnapshot) {
-      querySnapshot.docs.forEach((doc) {
-        UserData.instance.listStreet.add(doc);
-        if (mounted) {setState(() {});}
-      });
-    });
-  }
-  Future<void> classic() async {
-    await FirebaseFirestore.instance.collection('posts')
-    .where('post_tags', arrayContains: 'クラシック')
-    .orderBy("post_count", descending: true).get()
-    .then((QuerySnapshot querySnapshot) {
-      querySnapshot.docs.forEach((doc) {
-        UserData.instance.listClassic.add(doc);
-        if (mounted) {setState(() {});}
-      });
-    });
-  }
-  Future<void> mode() async {
-    await FirebaseFirestore.instance.collection('posts')
-    .where('post_tags', arrayContains: 'モード')
-    .orderBy("post_count", descending: true).get()
-    .then((QuerySnapshot querySnapshot) {
-      querySnapshot.docs.forEach((doc) {
-        UserData.instance.listMode.add(doc);
-        if (mounted) {setState(() {});}
-      });
-    });
-  }
-  Future<void> feminin() async {
-    await FirebaseFirestore.instance.collection('posts')
-    .where('post_tags', arrayContains: 'フェミニン')
-    .orderBy("post_count", descending: true).get()
-    .then((QuerySnapshot querySnapshot) {
-      querySnapshot.docs.forEach((doc) {
-        UserData.instance.listFeminin.add(doc);
-        if (mounted) {setState(() {});}
-      });
-    });
-  }
-  Future<void> grunge() async {
-    await FirebaseFirestore.instance.collection('posts')
-    .where('post_tags', arrayContains: 'グランジ')
-    .orderBy("post_count", descending: true).get()
-    .then((QuerySnapshot querySnapshot) {
-      querySnapshot.docs.forEach((doc) {
-        UserData.instance.listGrunge.add(doc);
-        if (mounted) {setState(() {});}
-      });
-    });
-  }
-  Future<void> annui() async {
-    await FirebaseFirestore.instance.collection('posts')
-    .where('post_tags', arrayContains: 'アンニュイ')
-    .orderBy("post_count", descending: true).get()
-    .then((QuerySnapshot querySnapshot) {
-      querySnapshot.docs.forEach((doc) {
-        UserData.instance.listAnnui.add(doc);
-        if (mounted) {setState(() {});}
-      });
-    });
-  }
-  Future<void> rock() async {
-    await FirebaseFirestore.instance.collection('posts')
-    .where('post_tags', arrayContains: 'ロック')
-    .orderBy("post_count", descending: true).get()
-    .then((QuerySnapshot querySnapshot) {
-      querySnapshot.docs.forEach((doc) {
-        UserData.instance.listRock.add(doc);
-        if (mounted) {setState(() {});}
-      });
-    });
-  }
-  Future<void> creative() async {
-    await FirebaseFirestore.instance.collection('posts')
-    .where('post_tags', arrayContains: 'クリエイティブ')
-    .orderBy("post_count", descending: true).get()
-    .then((QuerySnapshot querySnapshot) {
-      querySnapshot.docs.forEach((doc) {
-        UserData.instance.listCrieitive.add(doc);
-        if (mounted) {setState(() {});}
-      });
-    });
-  }
-  Future<void> like() async {
-    UserData.instance.documentLikeList.clear();
     await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user).get()
     .then((doc) {
-      UserData.instance.documentLikeList = doc["user_likes"];
+      UserData.instance.account.add(doc);
       if (mounted) {setState(() {});}
     });
   }
@@ -254,7 +112,6 @@ class _NavState extends State<Nav> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      // body: Container()
       body: Stack(
         children: <Widget>[
           _widgetOptions.elementAt(_selectedIndex),
@@ -353,12 +210,15 @@ class _NavState extends State<Nav> {
                         ),
                         borderRadius: BorderRadius.circular(40),
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(40.0),
-                        child: UserData.instance.account.length > 0 ? Image.network(
-                          "${UserData.instance.account[0]["user_image_500"]}",
-                          fit: BoxFit.cover,
+                      child: CircleAvatar(
+                        radius: 100,
+                        backgroundColor: Colors.white,
+                        foregroundImage: UserData.instance.account.length > 0 ? NetworkImage(
+                          '${UserData.instance.account[0]['user_image_500']}',
                         ) : null,
+                        backgroundImage: NetworkImage(
+                          'https://firebasestorage.googleapis.com/v0/b/photo-beauty-24f63.appspot.com/o/profiles%2Fresize_images%2FIkUjEEryaCSRwjZnGUAzPZMlWei1_1080x1080?alt=media&token=01efd83b-19ba-419a-a9c7-8204b34e60e7',
+                        ),
                       ),
                     ) : Container(),
                     onTap: () {

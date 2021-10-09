@@ -1,11 +1,10 @@
 import 'dart:async';
-import 'dart:io';
-import 'package:firebase_storage/firebase_storage.dart';
+// import 'dart:io';
+// import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:uuid/uuid.dart';
+// import 'package:image_picker/image_picker.dart';
 import '../../singleton.dart';
 import 'package:sizer/sizer.dart';
 
@@ -38,6 +37,7 @@ class _TweetState extends State<Tweet> {
       'tweet_text': userText.text,
       'tweet_photo': '',
       'tweet_uid': UserData.instance.user,
+      'tweet_time': DateTime.now(),
     });
   }
 

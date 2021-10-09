@@ -1,9 +1,12 @@
+// import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:app/2-twitter/items/imageView.dart';
 import 'package:sizer/sizer.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:linkable/linkable.dart';
 import 'package:app/2-twitter/items/tweet.dart';
-import 'package:url_launcher/url_launcher.dart';
+// import 'package:url_launcher/url_launcher.dart';
+// import '../singleton.dart';
 
 final navigatorsKey = GlobalKey<NavigatorState>();
 
@@ -37,7 +40,7 @@ class _TwitterState extends State<Twitter> {
                     Align(
                       alignment: Alignment.center,
                       child: Text(
-                        "Twitter",
+                        "掲示板",
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.black87,
@@ -135,94 +138,27 @@ class _TwitterState extends State<Twitter> {
                                                   ),
                                                 ),
                                               ),
-                                              snapshot.data!.docs[index]["tweet_photo_1080"] != '' ? Container(
-                                                width: 74.w,
-                                                height: 74.w,
-                                                margin: EdgeInsets.only(top: 5,),
-                                                child: ClipRRect(
-                                                  borderRadius: BorderRadius.circular(5.0),
-                                                  child: Image.network(
-                                                    snapshot.data!.docs[index]["tweet_photo_1080"],
-                                                    fit: BoxFit.cover,
+                                              snapshot.data!.docs[index]["tweet_photo_1080"] != '' ? 
+                                              GestureDetector(
+                                                child: Container(
+                                                  width: 74.w,
+                                                  height: 74.w,
+                                                  margin: EdgeInsets.only(top: 5,),
+                                                  child: ClipRRect(
+                                                    borderRadius: BorderRadius.circular(5.0),
+                                                    child: Image.network(
+                                                      snapshot.data!.docs[index]["tweet_photo_1080"],
+                                                      fit: BoxFit.cover,
+                                                    ),
                                                   ),
                                                 ),
+                                                onTap: () async {
+                                                  await Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(builder: (context) => ImageViewerPage(snapshot.data!.docs[index]["tweet_photo_1080"])),
+                                                  );
+                                                },
                                               ) : Container(),
-                                              Container(
-                                                width: 74.w,
-                                                child: Row(
-                                                  mainAxisAlignment: MainAxisAlignment.start,
-                                                  children: [
-                                                    GestureDetector(
-                                                      child: Container(
-                                                        padding: EdgeInsets.only(top: 5, bottom: 5, right: 5.w, left: 5.w,),
-                                                        margin: EdgeInsets.only(top: 10, left: 0),
-                                                        decoration: BoxDecoration(
-                                                          border: Border.all(
-                                                            color: Color(0xFFFF8D89),
-                                                            width: 1,
-                                                          ),
-                                                          borderRadius: BorderRadius.circular(5),
-                                                        ),
-                                                        child: Text(
-                                                          'instagram',
-                                                          style: TextStyle(
-                                                            color: Color(0xFFFF8D89),
-                                                            fontSize: 12,
-                                                            fontWeight: FontWeight.bold,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      onTap: () async {
-                                                        var url = 'https://www.instagram.com/${snapshot.data!.docs[index]["tweet_instagram"]}';
-                                                        if (await canLaunch(url)) {
-                                                          await launch(
-                                                            url,
-                                                            forceSafariVC: true,
-                                                            forceWebView: true,
-                                                          );
-                                                        } else {
-                                                          throw 'このURLにはアクセスできません';
-                                                        }
-                                                      }
-                                                    ),
-                                                    GestureDetector(
-                                                      child: Container(
-                                                        padding: EdgeInsets.only(top: 5, bottom: 5, right: 5.w, left: 5.w,),
-                                                        margin: EdgeInsets.only(top: 10, left: 10,),
-                                                        decoration: BoxDecoration(
-                                                          color: Colors.white,
-                                                          border: Border.all(
-                                                            color: Color(0xFFFF8D89),
-                                                            width: 1,
-                                                          ),
-                                                          borderRadius: BorderRadius.circular(5),
-                                                        ),
-                                                        child: Text(
-                                                          'tiktok',
-                                                          // UserData.instance.account[0]["user_instagram"],
-                                                          style: TextStyle(
-                                                            color: Color(0xFFFF8D89),
-                                                            fontSize: 12,
-                                                            fontWeight: FontWeight.bold,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      onTap: () async {
-                                                        var url = 'https://www.tiktok.com/@${snapshot.data!.docs[index]["tweet_tiktok"]}';
-                                                        if (await canLaunch(url)) {
-                                                          await launch(
-                                                            url,
-                                                            forceSafariVC: true,
-                                                            forceWebView: true,
-                                                          );
-                                                        } else {
-                                                          throw 'このURLにはアクセスできません';
-                                                        }
-                                                      },
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
                                             ],
                                           ),
                                         ],
@@ -236,6 +172,7 @@ class _TwitterState extends State<Twitter> {
                                           backgroundImage: NetworkImage(
                                             snapshot.data!.docs[index]["tweet_image_500"],
                                           ),
+                                          backgroundColor: Colors.white,
                                         ),
                                       ),
                                     ],
