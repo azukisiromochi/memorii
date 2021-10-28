@@ -47,8 +47,7 @@ class _AccountEditState extends State<AccountEdit> {
     if (mounted) {setState(() {});}
   }
   Future<void> getImage() async {
-    // final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    final pickedFile = await ImagePicker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       image = File(pickedFile.path);
       imageChenge = true;
