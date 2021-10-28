@@ -47,17 +47,17 @@ class _AuthMainState extends State<AuthMain> {
               UserData.instance.user = FirebaseAuth.instance.currentUser!.uid;
               FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
               .set({
-                "user_image_path" : "",
-                "user_last" : DateTime.now(),
-                "user_like_count" : 0,
-                "user_image_name" : "3e589930-188a-11ec-921a-e1ffda1fa37d",
-                "user_image_500" : "https://firebasestorage.googleapis.com/v0/b/photo-beauty-24f63.appspot.com/o/image%2Fresize_images%2Fhead_500x500.webp?alt=media&token=3ee30bd9-3528-4c39-8d28-993fba5e9da4",
-                "user_image_1080" : "https://firebasestorage.googleapis.com/v0/b/photo-beauty-24f63.appspot.com/o/image%2Fresize_images%2Fhead_1080x1080.webp?alt=media&token=3ee30bd9-3528-4c39-8d28-993fba5e9da4",
-                "user_instagram" : "Instagram",
-                "user_text" : "作品撮りチェックしてください！",
-                "user_likes" : [],
-                "user_name" : "",
-                "user_createdAt" : DateTime.now(),
+                'user_like_count' : 0,
+                'user_likes' : [],
+                'user_image_name' : '3e589930-188a-11ec-921a-e1ffda1fa37d',
+                'user_image_500' : 'https://firebasestorage.googleapis.com/v0/b/photo-beauty-24f63.appspot.com/o/image%2Fresize_images%2Fhead_500x500.webp?alt=media&token=3ee30bd9-3528-4c39-8d28-993fba5e9da4',
+                'user_image_1080' : 'https://firebasestorage.googleapis.com/v0/b/photo-beauty-24f63.appspot.com/o/image%2Fresize_images%2Fhead_1080x1080.webp?alt=media&token=3ee30bd9-3528-4c39-8d28-993fba5e9da4',
+                'user_name' : 'memorii',
+                'user_text' : '作品撮りチェックしてください！',
+                'user_instagram' : '',
+                'user_tiktok' : '',
+                'user_uid' : UserData.instance.user,
+                'user_createdAt' : DateTime.now(),
               });
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(builder: (_) => Nav()),
@@ -92,7 +92,7 @@ class _AuthMainState extends State<AuthMain> {
       ],
       nonce: nonce,
     );
-    final oauthCredential = OAuthProvider("apple.com").credential(
+    final oauthCredential = OAuthProvider('apple.com').credential(
       idToken: appleCredential.identityToken,
       rawNonce: rawNonce,
     );
@@ -111,17 +111,17 @@ class _AuthMainState extends State<AuthMain> {
             UserData.instance.user = FirebaseAuth.instance.currentUser!.uid;
             FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
               .set({
-                "user_image_path" : "",
-                "user_last" : DateTime.now(),
-                "user_like_count" : 0,
-                "user_image_name" : "3e589930-188a-11ec-921a-e1ffda1fa37d",
-                "user_image_500" : "https://firebasestorage.googleapis.com/v0/b/photo-beauty-24f63.appspot.com/o/image%2Fresize_images%2Fhead_500x500.webp?alt=media&token=3ee30bd9-3528-4c39-8d28-993fba5e9da4",
-                "user_image_1080" : "https://firebasestorage.googleapis.com/v0/b/photo-beauty-24f63.appspot.com/o/image%2Fresize_images%2Fhead_1080x1080.webp?alt=media&token=3ee30bd9-3528-4c39-8d28-993fba5e9da4",
-                "user_instagram" : "Instagram",
-                "user_text" : "作品撮りチェックしてください！",
-                "user_likes" : [],
-                "user_name" : "",
-                "user_createdAt" : DateTime.now(),
+                'user_like_count' : 0,
+                'user_image_name' : '3e589930-188a-11ec-921a-e1ffda1fa37d',
+                'user_image_500' : 'https://firebasestorage.googleapis.com/v0/b/photo-beauty-24f63.appspot.com/o/image%2Fresize_images%2Fhead_500x500.webp?alt=media&token=3ee30bd9-3528-4c39-8d28-993fba5e9da4',
+                'user_image_1080' : 'https://firebasestorage.googleapis.com/v0/b/photo-beauty-24f63.appspot.com/o/image%2Fresize_images%2Fhead_1080x1080.webp?alt=media&token=3ee30bd9-3528-4c39-8d28-993fba5e9da4',
+                'user_instagram' : '',
+                'user_text' : '作品撮りチェックしてください！',
+                'user_likes' : [],
+                'user_name' : '',
+                'user_uid' : UserData.instance.user,
+                'user_tiktok' : '',
+                'user_createdAt' : DateTime.now(),
             });
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(builder: (_) => Nav()),
@@ -178,7 +178,7 @@ class _AuthMainState extends State<AuthMain> {
                     child: Container(
                       width: 100.w,
                       child: Text(
-                        "beauty photograph",
+                        'beauty photograph',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
@@ -216,7 +216,7 @@ class _AuthMainState extends State<AuthMain> {
                                       margin: EdgeInsets.only(right: 10.w,),
                                       width: 60.w,
                                       child: Text(
-                                        "sign in with apple",
+                                        'sign in with apple',
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
@@ -310,7 +310,7 @@ class _AuthMainState extends State<AuthMain> {
                                       margin: EdgeInsets.only(right: 10.w,),
                                       width: 60.w,
                                       child: Text(
-                                        "sign in with google",
+                                        'sign in with google',
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,

@@ -1,5 +1,4 @@
-import 'package:cloud_functions/cloud_functions.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:app/1-home/items/html.dart';
 import 'package:flutter/services.dart';
 import 'items/post.dart';
 import 'items/item.dart';
@@ -43,9 +42,9 @@ class _PhotoMainState extends State<PhotoMain> {
     like();
   }
   Future<void> like() async {
-    UserData.instance.documentLikeList.clear();
     await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user).get()
     .then((doc) {
+      UserData.instance.documentLikeList.clear();
       UserData.instance.documentLikeList = doc["user_likes"];
       if (mounted) {setState(() {});}
     });
@@ -88,9 +87,12 @@ class _PhotoMainState extends State<PhotoMain> {
                         onPressed: () async {
                           await Navigator.push(
                             context,
-                            // MaterialPageRoute(builder: (context) => OtherMainPost(widget.onTap)),
-                            MaterialPageRoute(builder: (context) => Post()),
+                            // MaterialPageRoute(builder: (context) => Post()),
+                            // MaterialPageRoute(builder: (context) => Gallery())
+                            // MaterialPageRoute(builder: (context) => Post(widget.onTap)),
+                            MaterialPageRoute(builder: (context) => Html()),
                           );
+                          like();
                         },
                       ),
                     ),
@@ -101,7 +103,7 @@ class _PhotoMainState extends State<PhotoMain> {
                 elevation: 0.0,
               ),
               body: DefaultTabController(
-                length: 11,
+                length: 6,
                 child: NestedScrollView(
                   physics: NeverScrollableScrollPhysics(),
                   headerSliverBuilder: (context,isScolled){
@@ -110,6 +112,12 @@ class _PhotoMainState extends State<PhotoMain> {
                         delegate: MyDelegate(
                           TabBar(
                             tabs: [
+                              Tab(
+                                child: Align(
+                                  alignment: Alignment.center,
+                                  child: Text("最新"),
+                                ),
+                              ),
                               Tab(
                                 child: Align(
                                   alignment: Alignment.center,
@@ -131,43 +139,7 @@ class _PhotoMainState extends State<PhotoMain> {
                               Tab(
                                 child: Align(
                                   alignment: Alignment.center,
-                                  child: Text("ストリート"),
-                                ),
-                              ),
-                              Tab(
-                                child: Align(
-                                  alignment: Alignment.center,
-                                  child: Text("クラシック"),
-                                ),
-                              ),
-                              Tab(
-                                child: Align(
-                                  alignment: Alignment.center,
-                                  child: Text("モード"),
-                                ),
-                              ),
-                              Tab(
-                                child: Align(
-                                  alignment: Alignment.center,
-                                  child: Text("フェミニン"),
-                                ),
-                              ),
-                              Tab(
-                                child: Align(
-                                  alignment: Alignment.center,
-                                  child: Text("グランジ"),
-                                ),
-                              ),
-                              Tab(
-                                child: Align(
-                                  alignment: Alignment.center,
-                                  child: Text("アンニュイ"),
-                                ),
-                              ),
-                              Tab(
-                                child: Align(
-                                  alignment: Alignment.center,
-                                  child: Text("ロック"),
+                                  child: Text("サロンスタイル"),
                                 ),
                               ),
                               Tab(
@@ -176,20 +148,202 @@ class _PhotoMainState extends State<PhotoMain> {
                                   child: Text("クリエイティブ"),
                                 ),
                               ),
+
+                              // Tab(
+                              //   child: Align(
+                              //     alignment: Alignment.center,
+                              //     child: Text("ストリート"),
+                              //   ),
+                              // ),
+                              // Tab(
+                              //   child: Align(
+                              //     alignment: Alignment.center,
+                              //     child: Text("クラシック"),
+                              //   ),
+                              // ),
+                              // Tab(
+                              //   child: Align(
+                              //     alignment: Alignment.center,
+                              //     child: Text("モード"),
+                              //   ),
+                              // ),
+                              // Tab(
+                              //   child: Align(
+                              //     alignment: Alignment.center,
+                              //     child: Text("フェミニン"),
+                              //   ),
+                              // ),
+                              // Tab(
+                              //   child: Align(
+                              //     alignment: Alignment.center,
+                              //     child: Text("グランジ"),
+                              //   ),
+                              // ),
+                              // Tab(
+                              //   child: Align(
+                              //     alignment: Alignment.center,
+                              //     child: Text("アンニュイ"),
+                              //   ),
+                              // ),
+                              // Tab(
+                              //   child: Align(
+                              //     alignment: Alignment.center,
+                              //     child: Text("ロック"),
+                              //   ),
+                              // ),
+                              // Tab(
+                              //   child: Align(
+                              //     alignment: Alignment.center,
+                              //     child: Text("クリエイティブ"),
+                              //   ),
+                              // ),
                             ],
                             isScrollable: true,
                             indicatorColor: Color(0xFFFF8D89),
                             unselectedLabelColor: Colors.grey,
                             labelColor: Colors.black,
-                          )
+                          ),
                         ),
                         floating: true,
                         pinned: true,
-                      )
+                      ),
                     ];
                   },
                   body: TabBarView(
                     children: [
+                      Container(
+                        margin: EdgeInsets.only(top: 12, right: 12, left: 12),
+                        child: StreamBuilder(
+                          stream: FirebaseFirestore.instance
+                            .collection('posts')
+                            .orderBy("post_time", descending: true)
+                            .snapshots(),
+                          builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                            if (snapshot.hasData) {
+                              return StaggeredGridView.countBuilder(
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 10,
+                                mainAxisSpacing: 12,
+                                itemCount: snapshot.data!.docs.length,
+                                staggeredTileBuilder: (index) => StaggeredTile.fit(1),
+                                itemBuilder: (context, index) {
+                                  return Container(
+                                    child: Stack(
+                                      alignment: Alignment.bottomLeft,
+                                      children: [
+                                        GestureDetector(
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              color: Colors.transparent,
+                                              borderRadius: BorderRadius.all(
+                                                Radius.circular(10),
+                                              )
+                                            ),
+                                            child: ClipRRect(
+                                              borderRadius: BorderRadius.circular(10.0),
+                                              child: snapshot.data!.docs[index]["post_image_500"] == null ? Image.network("") : Image.network(
+                                                snapshot.data!.docs[index]["post_image_500"],
+                                              ),
+                                            ),
+                                          ),
+                                          onTap: () async {
+                                            if (snapshot.data!.docs[index]["post_image_500"].isNotEmpty) {
+                                              await Navigator.push(
+                                                context,
+                                                MaterialPageRoute(builder: (context) => Item(snapshot.data!.docs[index].id)),
+                                              );
+                                              like();
+                                            }
+                                          },
+                                        ),
+                                        Align(
+                                          alignment: Alignment.bottomLeft,
+                                          child: GestureDetector(
+                                            child: Container(
+                                              margin: EdgeInsets.only(left: 10, bottom: 9),
+                                              width: 30.w,
+                                              child: Text(
+                                                snapshot.data!.docs[index]["post_instagram"],
+                                                // snapshot.data!.docs[index]["post_name"],
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 11.sp,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 1,
+                                              ),
+                                            ),
+                                            onTap: () async {
+                                              if (snapshot.data!.docs[index]["post_uid"].isNotEmpty) {
+                                                await Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(builder: (context) => ProfileMain(snapshot.data!.docs[index]["post_uid"])),
+                                                );
+                                                like();
+                                              }
+                                            },
+                                          ),
+                                        ),
+                                        Align(
+                                          alignment: Alignment.bottomRight,
+                                          child: GestureDetector(
+                                            child: Container(
+                                              width: 40,
+                                              height: 35,
+                                              child: LikeButton(
+                                                isLiked: UserData.instance.documentLikeList.contains(snapshot.data!.docs[index].id) ? true : false,
+                                                circleColor: CircleColor(start: Color(0xFFF44336), end: Color(0xFFF44336)),
+                                                likeBuilder: (bool isLiked) {
+                                                  return Icon(
+                                                    Icons.favorite,
+                                                    size: 30,
+                                                    color: isLiked ? Colors.red : Colors.white70,
+                                                  );
+                                                },
+                                                onTap: (result) async {
+                                                  HapticFeedback.heavyImpact();
+                                                  if (result) {
+                                                    result = false;
+                                                    UserData.instance.documentLikeList.remove(snapshot.data!.docs[index].id);
+                                                    if (mounted) {setState(() {});}
+                                                    await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                                                      .update({'user_likes': FieldValue.arrayRemove([snapshot.data!.docs[index].id])});
+                                                    await FirebaseFirestore.instance.collection('users').doc(snapshot.data!.docs[index]["post_uid"])
+                                                      .update({'user_like_count': FieldValue.increment(-1)});
+                                                    await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                                                      .update({'post_count': FieldValue.increment(-1)});
+                                                    await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                                                      .update({'post_liker': FieldValue.arrayRemove([snapshot.data!.docs[index]["post_uid"]])});
+                                                  } else {
+                                                    result = true;
+                                                    UserData.instance.documentLikeList.add(snapshot.data!.docs[index].id);
+                                                    if (mounted) {setState(() {});}
+                                                    await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                                                      .update({'user_likes': FieldValue.arrayUnion([snapshot.data!.docs[index].id])});
+                                                    await FirebaseFirestore.instance.collection('users').doc(snapshot.data!.docs[index]["post_uid"])
+                                                      .update({'user_like_count': FieldValue.increment(1)});
+                                                    await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                                                      .update({'post_count': FieldValue.increment(1)});
+                                                    await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                                                      .update({'post_liker': FieldValue.arrayUnion([snapshot.data!.docs[index]["post_uid"]])});
+                                                  }
+                                                },
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  );
+                                },
+                              );
+                            } else {
+                              return Container();
+                            }
+                          },
+                        ),
+                      ),
                       Container(
                         margin: EdgeInsets.only(top: 12, right: 12, left: 12),
                         child: StreamBuilder(
@@ -229,7 +383,7 @@ class _PhotoMainState extends State<PhotoMain> {
                                             if (snapshot.data!.docs[index]["post_image_500"].isNotEmpty) {
                                               await Navigator.push(
                                                 context,
-                                                MaterialPageRoute(builder: (context) => Item("${snapshot.data!.docs[index].id}",)),
+                                                MaterialPageRoute(builder: (context) => Item(snapshot.data!.docs[index].id)),
                                               );
                                               like();
                                             }
@@ -242,7 +396,7 @@ class _PhotoMainState extends State<PhotoMain> {
                                               margin: EdgeInsets.only(left: 10, bottom: 9),
                                               width: 30.w,
                                               child: Text(
-                                                "${snapshot.data!.docs[index]["post_instagram"]}",
+                                                snapshot.data!.docs[index]["post_instagram"],
                                                 style: TextStyle(
                                                   color: Colors.white,
                                                   fontWeight: FontWeight.bold,
@@ -256,7 +410,7 @@ class _PhotoMainState extends State<PhotoMain> {
                                               if (snapshot.data!.docs[index]["post_uid"].isNotEmpty) {
                                                 await Navigator.push(
                                                   context,
-                                                  MaterialPageRoute(builder: (context) => ProfileMain("${snapshot.data!.docs[index]["post_uid"]}")),
+                                                  MaterialPageRoute(builder: (context) => ProfileMain(snapshot.data!.docs[index]["post_uid"])),
                                                 );
                                                 like();
                                               }
@@ -270,7 +424,7 @@ class _PhotoMainState extends State<PhotoMain> {
                                               width: 40,
                                               height: 35,
                                               child: LikeButton(
-                                                isLiked: UserData.instance.documentLikeList.contains("${snapshot.data!.docs[index].id}") ? true : false,
+                                                isLiked: UserData.instance.documentLikeList.contains(snapshot.data!.docs[index].id) ? true : false,
                                                 circleColor: CircleColor(start: Color(0xFFF44336), end: Color(0xFFF44336)),
                                                 likeBuilder: (bool isLiked) {
                                                   return Icon(
@@ -283,26 +437,28 @@ class _PhotoMainState extends State<PhotoMain> {
                                                   HapticFeedback.heavyImpact();
                                                   if (result) {
                                                     result = false;
-                                                    UserData.instance.documentLikeList.remove("${snapshot.data!.docs[index].id}");
+                                                    UserData.instance.documentLikeList.remove(snapshot.data!.docs[index].id);
                                                     if (mounted) {setState(() {});}
-                                                    await FirebaseFunctions.instanceFor(app: Firebase.app(), region: 'us-central1').httpsCallable('likePhoto_false')
-                                                    .call(
-                                                      <String, String>{
-                                                      'userUid': UserData.instance.user,
-                                                      'postUid': snapshot.data!.docs[index]['post_uid'],
-                                                      'postId': snapshot.data!.docs[index].id}
-                                                    );
+                                                    await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                                                      .update({'user_likes': FieldValue.arrayRemove([snapshot.data!.docs[index].id])});
+                                                    await FirebaseFirestore.instance.collection('users').doc(snapshot.data!.docs[index]['post_uid'])
+                                                      .update({'user_like_count': FieldValue.increment(-1)});
+                                                    await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                                                      .update({'post_count': FieldValue.increment(-1)});
+                                                    await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                                                      .update({'post_liker': FieldValue.arrayRemove([snapshot.data!.docs[index]['post_uid']])});
                                                   } else {
                                                     result = true;
-                                                    UserData.instance.documentLikeList.add("${snapshot.data!.docs[index].id}");
+                                                    UserData.instance.documentLikeList.add(snapshot.data!.docs[index].id);
                                                     if (mounted) {setState(() {});}
-                                                    await FirebaseFunctions.instanceFor(app: Firebase.app(), region: 'us-central1').httpsCallable('likePhoto_true')
-                                                    .call(
-                                                      <String, String>{
-                                                      'userUid': UserData.instance.user,
-                                                      'postUid': snapshot.data!.docs[index]['post_uid'],
-                                                      'postId': snapshot.data!.docs[index].id}
-                                                    );
+                                                    await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                                                      .update({'user_likes': FieldValue.arrayUnion([snapshot.data!.docs[index].id])});
+                                                    await FirebaseFirestore.instance.collection('users').doc(snapshot.data!.docs[index]['post_uid'])
+                                                      .update({'user_like_count': FieldValue.increment(1)});
+                                                    await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                                                      .update({'post_count': FieldValue.increment(1)});
+                                                    await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                                                      .update({'post_liker': FieldValue.arrayUnion([snapshot.data!.docs[index]['post_uid']])});
                                                   }
                                                 },
                                               ),
@@ -360,7 +516,7 @@ class _PhotoMainState extends State<PhotoMain> {
                                             if (snapshot.data!.docs[index]["post_image_500"].isNotEmpty) {
                                               await Navigator.push(
                                                 context,
-                                                MaterialPageRoute(builder: (context) => Item("${snapshot.data!.docs[index].id}",)),
+                                                MaterialPageRoute(builder: (context) => Item(snapshot.data!.docs[index].id)),
                                               );
                                               like();
                                             }
@@ -373,7 +529,8 @@ class _PhotoMainState extends State<PhotoMain> {
                                               margin: EdgeInsets.only(left: 10, bottom: 9),
                                               width: 30.w,
                                               child: Text(
-                                                "${snapshot.data!.docs[index]["post_instagram"]}",
+                                                snapshot.data!.docs[index]["post_instagram"],
+                                                // snapshot.data!.docs[index]["post_name"],
                                                 style: TextStyle(
                                                   color: Colors.white,
                                                   fontWeight: FontWeight.bold,
@@ -387,7 +544,7 @@ class _PhotoMainState extends State<PhotoMain> {
                                               if (snapshot.data!.docs[index]["post_uid"].isNotEmpty) {
                                                 await Navigator.push(
                                                   context,
-                                                  MaterialPageRoute(builder: (context) => ProfileMain("${snapshot.data!.docs[index]["post_uid"]}")),
+                                                  MaterialPageRoute(builder: (context) => ProfileMain(snapshot.data!.docs[index]["post_uid"])),
                                                 );
                                                 like();
                                               }
@@ -401,7 +558,7 @@ class _PhotoMainState extends State<PhotoMain> {
                                               width: 40,
                                               height: 35,
                                               child: LikeButton(
-                                                isLiked: UserData.instance.documentLikeList.contains("${snapshot.data!.docs[index].id}") ? true : false,
+                                                isLiked: UserData.instance.documentLikeList.contains(snapshot.data!.docs[index].id) ? true : false,
                                                 circleColor: CircleColor(start: Color(0xFFF44336), end: Color(0xFFF44336)),
                                                 likeBuilder: (bool isLiked) {
                                                   return Icon(
@@ -414,26 +571,28 @@ class _PhotoMainState extends State<PhotoMain> {
                                                   HapticFeedback.heavyImpact();
                                                   if (result) {
                                                     result = false;
-                                                    UserData.instance.documentLikeList.remove("${snapshot.data!.docs[index].id}");
+                                                    UserData.instance.documentLikeList.remove(snapshot.data!.docs[index].id);
                                                     if (mounted) {setState(() {});}
-                                                    await FirebaseFunctions.instanceFor(app: Firebase.app(), region: 'us-central1').httpsCallable('likePhoto_false')
-                                                    .call(
-                                                      <String, String>{
-                                                      'userUid': UserData.instance.user,
-                                                      'postUid': snapshot.data!.docs[index]['post_uid'],
-                                                      'postId': snapshot.data!.docs[index].id}
-                                                    );
+                                                    await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                                                      .update({'user_likes': FieldValue.arrayRemove([snapshot.data!.docs[index].id])});
+                                                    await FirebaseFirestore.instance.collection('users').doc(snapshot.data!.docs[index]['post_uid'])
+                                                      .update({'user_like_count': FieldValue.increment(-1)});
+                                                    await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                                                      .update({'post_count': FieldValue.increment(-1)});
+                                                    await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                                                      .update({'post_liker': FieldValue.arrayRemove([snapshot.data!.docs[index]['post_uid']])});
                                                   } else {
                                                     result = true;
-                                                    UserData.instance.documentLikeList.add("${snapshot.data!.docs[index].id}");
+                                                    UserData.instance.documentLikeList.add(snapshot.data!.docs[index].id);
                                                     if (mounted) {setState(() {});}
-                                                    await FirebaseFunctions.instanceFor(app: Firebase.app(), region: 'us-central1').httpsCallable('likePhoto_true')
-                                                    .call(
-                                                      <String, String>{
-                                                      'userUid': UserData.instance.user,
-                                                      'postUid': snapshot.data!.docs[index]['post_uid'],
-                                                      'postId': snapshot.data!.docs[index].id}
-                                                    );
+                                                    await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                                                      .update({'user_likes': FieldValue.arrayUnion([snapshot.data!.docs[index].id])});
+                                                    await FirebaseFirestore.instance.collection('users').doc(snapshot.data!.docs[index]['post_uid'])
+                                                      .update({'user_like_count': FieldValue.increment(1)});
+                                                    await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                                                      .update({'post_count': FieldValue.increment(1)});
+                                                    await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                                                      .update({'post_liker': FieldValue.arrayUnion([snapshot.data!.docs[index]['post_uid']])});
                                                   }
                                                 },
                                               ),
@@ -491,7 +650,7 @@ class _PhotoMainState extends State<PhotoMain> {
                                             if (snapshot.data!.docs[index]["post_image_500"].isNotEmpty) {
                                               await Navigator.push(
                                                 context,
-                                                MaterialPageRoute(builder: (context) => Item("${snapshot.data!.docs[index].id}",)),
+                                                MaterialPageRoute(builder: (context) => Item(snapshot.data!.docs[index].id)),
                                               );
                                               like();
                                             }
@@ -504,7 +663,7 @@ class _PhotoMainState extends State<PhotoMain> {
                                               margin: EdgeInsets.only(left: 10, bottom: 9),
                                               width: 30.w,
                                               child: Text(
-                                                "${snapshot.data!.docs[index]["post_instagram"]}",
+                                                snapshot.data!.docs[index]["post_instagram"],
                                                 style: TextStyle(
                                                   color: Colors.white,
                                                   fontWeight: FontWeight.bold,
@@ -518,7 +677,7 @@ class _PhotoMainState extends State<PhotoMain> {
                                               if (snapshot.data!.docs[index]["post_uid"].isNotEmpty) {
                                                 await Navigator.push(
                                                   context,
-                                                  MaterialPageRoute(builder: (context) => ProfileMain("${snapshot.data!.docs[index]["post_uid"]}")),
+                                                  MaterialPageRoute(builder: (context) => ProfileMain(snapshot.data!.docs[index]["post_uid"])),
                                                 );
                                                 like();
                                               }
@@ -532,7 +691,7 @@ class _PhotoMainState extends State<PhotoMain> {
                                               width: 40,
                                               height: 35,
                                               child: LikeButton(
-                                                isLiked: UserData.instance.documentLikeList.contains("${snapshot.data!.docs[index].id}") ? true : false,
+                                                isLiked: UserData.instance.documentLikeList.contains(snapshot.data!.docs[index].id) ? true : false,
                                                 circleColor: CircleColor(start: Color(0xFFF44336), end: Color(0xFFF44336)),
                                                 likeBuilder: (bool isLiked) {
                                                   return Icon(
@@ -545,26 +704,28 @@ class _PhotoMainState extends State<PhotoMain> {
                                                   HapticFeedback.heavyImpact();
                                                   if (result) {
                                                     result = false;
-                                                    UserData.instance.documentLikeList.remove("${snapshot.data!.docs[index].id}");
+                                                    UserData.instance.documentLikeList.remove(snapshot.data!.docs[index].id);
                                                     if (mounted) {setState(() {});}
-                                                    await FirebaseFunctions.instanceFor(app: Firebase.app(), region: 'us-central1').httpsCallable('likePhoto_false')
-                                                    .call(
-                                                      <String, String>{
-                                                      'userUid': UserData.instance.user,
-                                                      'postUid': snapshot.data!.docs[index]['post_uid'],
-                                                      'postId': snapshot.data!.docs[index].id}
-                                                    );
+                                                    await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                                                      .update({'user_likes': FieldValue.arrayRemove([snapshot.data!.docs[index].id])});
+                                                    await FirebaseFirestore.instance.collection('users').doc(snapshot.data!.docs[index]['post_uid'])
+                                                      .update({'user_like_count': FieldValue.increment(-1)});
+                                                    await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                                                      .update({'post_count': FieldValue.increment(-1)});
+                                                    await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                                                      .update({'post_liker': FieldValue.arrayRemove([snapshot.data!.docs[index]['post_uid']])});
                                                   } else {
                                                     result = true;
-                                                    UserData.instance.documentLikeList.add("${snapshot.data!.docs[index].id}");
+                                                    UserData.instance.documentLikeList.add(snapshot.data!.docs[index].id);
                                                     if (mounted) {setState(() {});}
-                                                    await FirebaseFunctions.instanceFor(app: Firebase.app(), region: 'us-central1').httpsCallable('likePhoto_true')
-                                                    .call(
-                                                      <String, String>{
-                                                      'userUid': UserData.instance.user,
-                                                      'postUid': snapshot.data!.docs[index]['post_uid'],
-                                                      'postId': snapshot.data!.docs[index].id}
-                                                    );
+                                                    await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                                                      .update({'user_likes': FieldValue.arrayUnion([snapshot.data!.docs[index].id])});
+                                                    await FirebaseFirestore.instance.collection('users').doc(snapshot.data!.docs[index]['post_uid'])
+                                                      .update({'user_like_count': FieldValue.increment(1)});
+                                                    await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                                                      .update({'post_count': FieldValue.increment(1)});
+                                                    await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                                                      .update({'post_liker': FieldValue.arrayUnion([snapshot.data!.docs[index]['post_uid']])});
                                                   }
                                                 },
                                               ),
@@ -587,7 +748,7 @@ class _PhotoMainState extends State<PhotoMain> {
                         child: StreamBuilder(
                           stream: FirebaseFirestore.instance
                             .collection('posts')
-                            .where('post_tags', arrayContains: 'ストリート')
+                            .where('post_tags', arrayContainsAny: ['ストリート','クラシック','モード','フェミニン','グランジ','アンニュイ','ロック',])
                             .orderBy("post_count", descending: true)
                             .snapshots(),
                           builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -622,7 +783,7 @@ class _PhotoMainState extends State<PhotoMain> {
                                             if (snapshot.data!.docs[index]["post_image_500"].isNotEmpty) {
                                               await Navigator.push(
                                                 context,
-                                                MaterialPageRoute(builder: (context) => Item("${snapshot.data!.docs[index].id}",)),
+                                                MaterialPageRoute(builder: (context) => Item(snapshot.data!.docs[index].id)),
                                               );
                                               like();
                                             }
@@ -635,7 +796,7 @@ class _PhotoMainState extends State<PhotoMain> {
                                               margin: EdgeInsets.only(left: 10, bottom: 9),
                                               width: 30.w,
                                               child: Text(
-                                                "${snapshot.data!.docs[index]["post_instagram"]}",
+                                                snapshot.data!.docs[index]["post_instagram"],
                                                 style: TextStyle(
                                                   color: Colors.white,
                                                   fontWeight: FontWeight.bold,
@@ -649,7 +810,7 @@ class _PhotoMainState extends State<PhotoMain> {
                                               if (snapshot.data!.docs[index]["post_uid"].isNotEmpty) {
                                                 await Navigator.push(
                                                   context,
-                                                  MaterialPageRoute(builder: (context) => ProfileMain("${snapshot.data!.docs[index]["post_uid"]}")),
+                                                  MaterialPageRoute(builder: (context) => ProfileMain(snapshot.data!.docs[index]["post_uid"])),
                                                 );
                                                 like();
                                               }
@@ -663,7 +824,7 @@ class _PhotoMainState extends State<PhotoMain> {
                                               width: 40,
                                               height: 35,
                                               child: LikeButton(
-                                                isLiked: UserData.instance.documentLikeList.contains("${snapshot.data!.docs[index].id}") ? true : false,
+                                                isLiked: UserData.instance.documentLikeList.contains(snapshot.data!.docs[index].id) ? true : false,
                                                 circleColor: CircleColor(start: Color(0xFFF44336), end: Color(0xFFF44336)),
                                                 likeBuilder: (bool isLiked) {
                                                   return Icon(
@@ -676,812 +837,28 @@ class _PhotoMainState extends State<PhotoMain> {
                                                   HapticFeedback.heavyImpact();
                                                   if (result) {
                                                     result = false;
-                                                    UserData.instance.documentLikeList.remove("${snapshot.data!.docs[index].id}");
+                                                    UserData.instance.documentLikeList.remove(snapshot.data!.docs[index].id);
                                                     if (mounted) {setState(() {});}
-                                                    await FirebaseFunctions.instanceFor(app: Firebase.app(), region: 'us-central1').httpsCallable('likePhoto_false')
-                                                    .call(
-                                                      <String, String>{
-                                                      'userUid': UserData.instance.user,
-                                                      'postUid': snapshot.data!.docs[index]['post_uid'],
-                                                      'postId': snapshot.data!.docs[index].id}
-                                                    );
+                                                    await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                                                      .update({'user_likes': FieldValue.arrayRemove([snapshot.data!.docs[index].id])});
+                                                    await FirebaseFirestore.instance.collection('users').doc(snapshot.data!.docs[index]['post_uid'])
+                                                      .update({'user_like_count': FieldValue.increment(-1)});
+                                                    await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                                                      .update({'post_count': FieldValue.increment(-1)});
+                                                    await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                                                      .update({'post_liker': FieldValue.arrayRemove([snapshot.data!.docs[index]['post_uid']])});
                                                   } else {
                                                     result = true;
-                                                    UserData.instance.documentLikeList.add("${snapshot.data!.docs[index].id}");
+                                                    UserData.instance.documentLikeList.add(snapshot.data!.docs[index].id);
                                                     if (mounted) {setState(() {});}
-                                                    await FirebaseFunctions.instanceFor(app: Firebase.app(), region: 'us-central1').httpsCallable('likePhoto_true')
-                                                    .call(
-                                                      <String, String>{
-                                                      'userUid': UserData.instance.user,
-                                                      'postUid': snapshot.data!.docs[index]['post_uid'],
-                                                      'postId': snapshot.data!.docs[index].id}
-                                                    );
-                                                  }
-                                                },
-                                              ),
-                                            ),
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                  );
-                                },
-                              );
-                            } else {
-                              return Container();
-                            }
-                          },
-                        ),
-                      ),
-                      Container(
-                        margin: EdgeInsets.only(top: 12, right: 12, left: 12),
-                        child: StreamBuilder(
-                          stream: FirebaseFirestore.instance
-                            .collection('posts')
-                            .where('post_tags', arrayContains: 'クラシック')
-                            .orderBy("post_count", descending: true)
-                            .snapshots(),
-                          builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                            if (snapshot.hasData) {
-                              return StaggeredGridView.countBuilder(
-                                crossAxisCount: 2,
-                                crossAxisSpacing: 10,
-                                mainAxisSpacing: 12,
-                                itemCount: snapshot.data!.docs.length,
-                                staggeredTileBuilder: (index) => StaggeredTile.fit(1),
-                                itemBuilder: (context, index) {
-                                  return Container(
-                                    child: Stack(
-                                      alignment: Alignment.bottomLeft,
-                                      children: [
-                                        GestureDetector(
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              color: Colors.transparent,
-                                              borderRadius: BorderRadius.all(
-                                                Radius.circular(10),
-                                              )
-                                            ),
-                                            child: ClipRRect(
-                                              borderRadius: BorderRadius.circular(10.0),
-                                              child: snapshot.data!.docs[index]["post_image_500"] == null ? Image.network("") : Image.network(
-                                                snapshot.data!.docs[index]["post_image_500"],
-                                              ),
-                                            ),
-                                          ),
-                                          onTap: () async {
-                                            if (snapshot.data!.docs[index]["post_image_500"].isNotEmpty) {
-                                              await Navigator.push(
-                                                context,
-                                                MaterialPageRoute(builder: (context) => Item("${snapshot.data!.docs[index].id}",)),
-                                              );
-                                              like();
-                                            }
-                                          },
-                                        ),
-                                        Align(
-                                          alignment: Alignment.bottomLeft,
-                                          child: GestureDetector(
-                                            child: Container(
-                                              margin: EdgeInsets.only(left: 10, bottom: 9),
-                                              width: 30.w,
-                                              child: Text(
-                                                "${snapshot.data!.docs[index]["post_instagram"]}",
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 11.sp,
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
-                                                maxLines: 1,
-                                              ),
-                                            ),
-                                            onTap: () async {
-                                              if (snapshot.data!.docs[index]["post_uid"].isNotEmpty) {
-                                                await Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(builder: (context) => ProfileMain("${snapshot.data!.docs[index]["post_uid"]}")),
-                                                );
-                                                like();
-                                              }
-                                            },
-                                          ),
-                                        ),
-                                        Align(
-                                          alignment: Alignment.bottomRight,
-                                          child: GestureDetector(
-                                            child: Container(
-                                              width: 40,
-                                              height: 35,
-                                              child: LikeButton(
-                                                isLiked: UserData.instance.documentLikeList.contains("${snapshot.data!.docs[index].id}") ? true : false,
-                                                circleColor: CircleColor(start: Color(0xFFF44336), end: Color(0xFFF44336)),
-                                                likeBuilder: (bool isLiked) {
-                                                  return Icon(
-                                                    Icons.favorite,
-                                                    size: 30,
-                                                    color: isLiked ? Colors.red : Colors.white70,
-                                                  );
-                                                },
-                                                onTap: (result) async {
-                                                  HapticFeedback.heavyImpact();
-                                                  if (result) {
-                                                    result = false;
-                                                    UserData.instance.documentLikeList.remove("${snapshot.data!.docs[index].id}");
-                                                    if (mounted) {setState(() {});}
-                                                    await FirebaseFunctions.instanceFor(app: Firebase.app(), region: 'us-central1').httpsCallable('likePhoto_false')
-                                                    .call(
-                                                      <String, String>{
-                                                      'userUid': UserData.instance.user,
-                                                      'postUid': snapshot.data!.docs[index]['post_uid'],
-                                                      'postId': snapshot.data!.docs[index].id}
-                                                    );
-                                                  } else {
-                                                    result = true;
-                                                    UserData.instance.documentLikeList.add("${snapshot.data!.docs[index].id}");
-                                                    if (mounted) {setState(() {});}
-                                                    await FirebaseFunctions.instanceFor(app: Firebase.app(), region: 'us-central1').httpsCallable('likePhoto_true')
-                                                    .call(
-                                                      <String, String>{
-                                                      'userUid': UserData.instance.user,
-                                                      'postUid': snapshot.data!.docs[index]['post_uid'],
-                                                      'postId': snapshot.data!.docs[index].id}
-                                                    );
-                                                  }
-                                                },
-                                              ),
-                                            ),
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                  );
-                                },
-                              );
-                            } else {
-                              return Container();
-                            }
-                          },
-                        ),
-                      ),
-                      Container(
-                        margin: EdgeInsets.only(top: 12, right: 12, left: 12),
-                        child: StreamBuilder(
-                          stream: FirebaseFirestore.instance
-                            .collection('posts')
-                            .where('post_tags', arrayContains: 'モード')
-                            .orderBy("post_count", descending: true)
-                            .snapshots(),
-                          builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                            if (snapshot.hasData) {
-                              return StaggeredGridView.countBuilder(
-                                crossAxisCount: 2,
-                                crossAxisSpacing: 10,
-                                mainAxisSpacing: 12,
-                                itemCount: snapshot.data!.docs.length,
-                                staggeredTileBuilder: (index) => StaggeredTile.fit(1),
-                                itemBuilder: (context, index) {
-                                  return Container(
-                                    child: Stack(
-                                      alignment: Alignment.bottomLeft,
-                                      children: [
-                                        GestureDetector(
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              color: Colors.transparent,
-                                              borderRadius: BorderRadius.all(
-                                                Radius.circular(10),
-                                              )
-                                            ),
-                                            child: ClipRRect(
-                                              borderRadius: BorderRadius.circular(10.0),
-                                              child: snapshot.data!.docs[index]["post_image_500"] == null ? Image.network("") : Image.network(
-                                                snapshot.data!.docs[index]["post_image_500"],
-                                              ),
-                                            ),
-                                          ),
-                                          onTap: () async {
-                                            if (snapshot.data!.docs[index]["post_image_500"].isNotEmpty) {
-                                              await Navigator.push(
-                                                context,
-                                                MaterialPageRoute(builder: (context) => Item("${snapshot.data!.docs[index].id}",)),
-                                              );
-                                              like();
-                                            }
-                                          },
-                                        ),
-                                        Align(
-                                          alignment: Alignment.bottomLeft,
-                                          child: GestureDetector(
-                                            child: Container(
-                                              margin: EdgeInsets.only(left: 10, bottom: 9),
-                                              width: 30.w,
-                                              child: Text(
-                                                "${snapshot.data!.docs[index]["post_instagram"]}",
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 11.sp,
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
-                                                maxLines: 1,
-                                              ),
-                                            ),
-                                            onTap: () async {
-                                              if (snapshot.data!.docs[index]["post_uid"].isNotEmpty) {
-                                                await Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(builder: (context) => ProfileMain("${snapshot.data!.docs[index]["post_uid"]}")),
-                                                );
-                                                like();
-                                              }
-                                            },
-                                          ),
-                                        ),
-                                        Align(
-                                          alignment: Alignment.bottomRight,
-                                          child: GestureDetector(
-                                            child: Container(
-                                              width: 40,
-                                              height: 35,
-                                              child: LikeButton(
-                                                isLiked: UserData.instance.documentLikeList.contains("${snapshot.data!.docs[index].id}") ? true : false,
-                                                circleColor: CircleColor(start: Color(0xFFF44336), end: Color(0xFFF44336)),
-                                                likeBuilder: (bool isLiked) {
-                                                  return Icon(
-                                                    Icons.favorite,
-                                                    size: 30,
-                                                    color: isLiked ? Colors.red : Colors.white70,
-                                                  );
-                                                },
-                                                onTap: (result) async {
-                                                  HapticFeedback.heavyImpact();
-                                                  if (result) {
-                                                    result = false;
-                                                    UserData.instance.documentLikeList.remove("${snapshot.data!.docs[index].id}");
-                                                    if (mounted) {setState(() {});}
-                                                    await FirebaseFunctions.instanceFor(app: Firebase.app(), region: 'us-central1').httpsCallable('likePhoto_false')
-                                                    .call(
-                                                      <String, String>{
-                                                      'userUid': UserData.instance.user,
-                                                      'postUid': snapshot.data!.docs[index]['post_uid'],
-                                                      'postId': snapshot.data!.docs[index].id}
-                                                    );
-                                                  } else {
-                                                    result = true;
-                                                    UserData.instance.documentLikeList.add("${snapshot.data!.docs[index].id}");
-                                                    if (mounted) {setState(() {});}
-                                                    await FirebaseFunctions.instanceFor(app: Firebase.app(), region: 'us-central1').httpsCallable('likePhoto_true')
-                                                    .call(
-                                                      <String, String>{
-                                                      'userUid': UserData.instance.user,
-                                                      'postUid': snapshot.data!.docs[index]['post_uid'],
-                                                      'postId': snapshot.data!.docs[index].id}
-                                                    );
-                                                  }
-                                                },
-                                              ),
-                                            ),
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                  );
-                                },
-                              );
-                            } else {
-                              return Container();
-                            }
-                          },
-                        ),
-                      ),
-                      Container(
-                        margin: EdgeInsets.only(top: 12, right: 12, left: 12),
-                        child: StreamBuilder(
-                          stream: FirebaseFirestore.instance
-                            .collection('posts')
-                            .where('post_tags', arrayContains: 'フェミニン')
-                            .orderBy("post_count", descending: true)
-                            .snapshots(),
-                          builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                            if (snapshot.hasData) {
-                              return StaggeredGridView.countBuilder(
-                                crossAxisCount: 2,
-                                crossAxisSpacing: 10,
-                                mainAxisSpacing: 12,
-                                itemCount: snapshot.data!.docs.length,
-                                staggeredTileBuilder: (index) => StaggeredTile.fit(1),
-                                itemBuilder: (context, index) {
-                                  return Container(
-                                    child: Stack(
-                                      alignment: Alignment.bottomLeft,
-                                      children: [
-                                        GestureDetector(
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              color: Colors.transparent,
-                                              borderRadius: BorderRadius.all(
-                                                Radius.circular(10),
-                                              )
-                                            ),
-                                            child: ClipRRect(
-                                              borderRadius: BorderRadius.circular(10.0),
-                                              child: snapshot.data!.docs[index]["post_image_500"] == null ? Image.network("") : Image.network(
-                                                snapshot.data!.docs[index]["post_image_500"],
-                                              ),
-                                            ),
-                                          ),
-                                          onTap: () async {
-                                            if (snapshot.data!.docs[index]["post_image_500"].isNotEmpty) {
-                                              await Navigator.push(
-                                                context,
-                                                MaterialPageRoute(builder: (context) => Item("${snapshot.data!.docs[index].id}",)),
-                                              );
-                                              like();
-                                            }
-                                          },
-                                        ),
-                                        Align(
-                                          alignment: Alignment.bottomLeft,
-                                          child: GestureDetector(
-                                            child: Container(
-                                              margin: EdgeInsets.only(left: 10, bottom: 9),
-                                              width: 30.w,
-                                              child: Text(
-                                                "${snapshot.data!.docs[index]["post_instagram"]}",
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 11.sp,
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
-                                                maxLines: 1,
-                                              ),
-                                            ),
-                                            onTap: () async {
-                                              if (snapshot.data!.docs[index]["post_uid"].isNotEmpty) {
-                                                await Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(builder: (context) => ProfileMain("${snapshot.data!.docs[index]["post_uid"]}")),
-                                                );
-                                                like();
-                                              }
-                                            },
-                                          ),
-                                        ),
-                                        Align(
-                                          alignment: Alignment.bottomRight,
-                                          child: GestureDetector(
-                                            child: Container(
-                                              width: 40,
-                                              height: 35,
-                                              child: LikeButton(
-                                                isLiked: UserData.instance.documentLikeList.contains("${snapshot.data!.docs[index].id}") ? true : false,
-                                                circleColor: CircleColor(start: Color(0xFFF44336), end: Color(0xFFF44336)),
-                                                likeBuilder: (bool isLiked) {
-                                                  return Icon(
-                                                    Icons.favorite,
-                                                    size: 30,
-                                                    color: isLiked ? Colors.red : Colors.white70,
-                                                  );
-                                                },
-                                                onTap: (result) async {
-                                                  HapticFeedback.heavyImpact();
-                                                  if (result) {
-                                                    result = false;
-                                                    UserData.instance.documentLikeList.remove("${snapshot.data!.docs[index].id}");
-                                                    if (mounted) {setState(() {});}
-                                                    await FirebaseFunctions.instanceFor(app: Firebase.app(), region: 'us-central1').httpsCallable('likePhoto_false')
-                                                    .call(
-                                                      <String, String>{
-                                                      'userUid': UserData.instance.user,
-                                                      'postUid': snapshot.data!.docs[index]['post_uid'],
-                                                      'postId': snapshot.data!.docs[index].id}
-                                                    );
-                                                  } else {
-                                                    result = true;
-                                                    UserData.instance.documentLikeList.add("${snapshot.data!.docs[index].id}");
-                                                    if (mounted) {setState(() {});}
-                                                    await FirebaseFunctions.instanceFor(app: Firebase.app(), region: 'us-central1').httpsCallable('likePhoto_true')
-                                                    .call(
-                                                      <String, String>{
-                                                      'userUid': UserData.instance.user,
-                                                      'postUid': snapshot.data!.docs[index]['post_uid'],
-                                                      'postId': snapshot.data!.docs[index].id}
-                                                    );
-                                                  }
-                                                },
-                                              ),
-                                            ),
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                  );
-                                },
-                              );
-                            } else {
-                              return Container();
-                            }
-                          },
-                        ),
-                      ),
-                      Container(
-                        margin: EdgeInsets.only(top: 12, right: 12, left: 12),
-                        child: StreamBuilder(
-                          stream: FirebaseFirestore.instance
-                            .collection('posts')
-                            .where('post_tags', arrayContains: 'グランジ')
-                            .orderBy("post_count", descending: true)
-                            .snapshots(),
-                          builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                            if (snapshot.hasData) {
-                              return StaggeredGridView.countBuilder(
-                                crossAxisCount: 2,
-                                crossAxisSpacing: 10,
-                                mainAxisSpacing: 12,
-                                itemCount: snapshot.data!.docs.length,
-                                staggeredTileBuilder: (index) => StaggeredTile.fit(1),
-                                itemBuilder: (context, index) {
-                                  return Container(
-                                    child: Stack(
-                                      alignment: Alignment.bottomLeft,
-                                      children: [
-                                        GestureDetector(
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              color: Colors.transparent,
-                                              borderRadius: BorderRadius.all(
-                                                Radius.circular(10),
-                                              )
-                                            ),
-                                            child: ClipRRect(
-                                              borderRadius: BorderRadius.circular(10.0),
-                                              child: snapshot.data!.docs[index]["post_image_500"] == null ? Image.network("") : Image.network(
-                                                snapshot.data!.docs[index]["post_image_500"],
-                                              ),
-                                            ),
-                                          ),
-                                          onTap: () async {
-                                            if (snapshot.data!.docs[index]["post_image_500"].isNotEmpty) {
-                                              await Navigator.push(
-                                                context,
-                                                MaterialPageRoute(builder: (context) => Item("${snapshot.data!.docs[index].id}",)),
-                                              );
-                                              like();
-                                            }
-                                          },
-                                        ),
-                                        Align(
-                                          alignment: Alignment.bottomLeft,
-                                          child: GestureDetector(
-                                            child: Container(
-                                              margin: EdgeInsets.only(left: 10, bottom: 9),
-                                              width: 30.w,
-                                              child: Text(
-                                                "${snapshot.data!.docs[index]["post_instagram"]}",
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 11.sp,
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
-                                                maxLines: 1,
-                                              ),
-                                            ),
-                                            onTap: () async {
-                                              if (snapshot.data!.docs[index]["post_uid"].isNotEmpty) {
-                                                await Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(builder: (context) => ProfileMain("${snapshot.data!.docs[index]["post_uid"]}")),
-                                                );
-                                                like();
-                                              }
-                                            },
-                                          ),
-                                        ),
-                                        Align(
-                                          alignment: Alignment.bottomRight,
-                                          child: GestureDetector(
-                                            child: Container(
-                                              width: 40,
-                                              height: 35,
-                                              child: LikeButton(
-                                                isLiked: UserData.instance.documentLikeList.contains("${snapshot.data!.docs[index].id}") ? true : false,
-                                                circleColor: CircleColor(start: Color(0xFFF44336), end: Color(0xFFF44336)),
-                                                likeBuilder: (bool isLiked) {
-                                                  return Icon(
-                                                    Icons.favorite,
-                                                    size: 30,
-                                                    color: isLiked ? Colors.red : Colors.white70,
-                                                  );
-                                                },
-                                                onTap: (result) async {
-                                                  HapticFeedback.heavyImpact();
-                                                  if (result) {
-                                                    result = false;
-                                                    UserData.instance.documentLikeList.remove("${snapshot.data!.docs[index].id}");
-                                                    if (mounted) {setState(() {});}
-                                                    await FirebaseFunctions.instanceFor(app: Firebase.app(), region: 'us-central1').httpsCallable('likePhoto_false')
-                                                    .call(
-                                                      <String, String>{
-                                                      'userUid': UserData.instance.user,
-                                                      'postUid': snapshot.data!.docs[index]['post_uid'],
-                                                      'postId': snapshot.data!.docs[index].id}
-                                                    );
-                                                  } else {
-                                                    result = true;
-                                                    UserData.instance.documentLikeList.add("${snapshot.data!.docs[index].id}");
-                                                    if (mounted) {setState(() {});}
-                                                    await FirebaseFunctions.instanceFor(app: Firebase.app(), region: 'us-central1').httpsCallable('likePhoto_true')
-                                                    .call(
-                                                      <String, String>{
-                                                      'userUid': UserData.instance.user,
-                                                      'postUid': snapshot.data!.docs[index]['post_uid'],
-                                                      'postId': snapshot.data!.docs[index].id}
-                                                    );
-                                                  }
-                                                },
-                                              ),
-                                            ),
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                  );
-                                },
-                              );
-                            } else {
-                              return Container();
-                            }
-                          },
-                        ),
-                      ),
-                      Container(
-                        margin: EdgeInsets.only(top: 12, right: 12, left: 12),
-                        child: StreamBuilder(
-                          stream: FirebaseFirestore.instance
-                            .collection('posts')
-                            .where('post_tags', arrayContains: 'アンニュイ')
-                            .orderBy("post_count", descending: true)
-                            .snapshots(),
-                          builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                            if (snapshot.hasData) {
-                              return StaggeredGridView.countBuilder(
-                                crossAxisCount: 2,
-                                crossAxisSpacing: 10,
-                                mainAxisSpacing: 12,
-                                itemCount: snapshot.data!.docs.length,
-                                staggeredTileBuilder: (index) => StaggeredTile.fit(1),
-                                itemBuilder: (context, index) {
-                                  return Container(
-                                    child: Stack(
-                                      alignment: Alignment.bottomLeft,
-                                      children: [
-                                        GestureDetector(
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              color: Colors.transparent,
-                                              borderRadius: BorderRadius.all(
-                                                Radius.circular(10),
-                                              )
-                                            ),
-                                            child: ClipRRect(
-                                              borderRadius: BorderRadius.circular(10.0),
-                                              child: snapshot.data!.docs[index]["post_image_500"] == null ? Image.network("") : Image.network(
-                                                snapshot.data!.docs[index]["post_image_500"],
-                                              ),
-                                            ),
-                                          ),
-                                          onTap: () async {
-                                            if (snapshot.data!.docs[index]["post_image_500"].isNotEmpty) {
-                                              await Navigator.push(
-                                                context,
-                                                MaterialPageRoute(builder: (context) => Item("${snapshot.data!.docs[index].id}",)),
-                                              );
-                                              like();
-                                            }
-                                          },
-                                        ),
-                                        Align(
-                                          alignment: Alignment.bottomLeft,
-                                          child: GestureDetector(
-                                            child: Container(
-                                              margin: EdgeInsets.only(left: 10, bottom: 9),
-                                              width: 30.w,
-                                              child: Text(
-                                                "${snapshot.data!.docs[index]["post_instagram"]}",
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 11.sp,
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
-                                                maxLines: 1,
-                                              ),
-                                            ),
-                                            onTap: () async {
-                                              if (snapshot.data!.docs[index]["post_uid"].isNotEmpty) {
-                                                await Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(builder: (context) => ProfileMain("${snapshot.data!.docs[index]["post_uid"]}")),
-                                                );
-                                                like();
-                                              }
-                                            },
-                                          ),
-                                        ),
-                                        Align(
-                                          alignment: Alignment.bottomRight,
-                                          child: GestureDetector(
-                                            child: Container(
-                                              width: 40,
-                                              height: 35,
-                                              child: LikeButton(
-                                                isLiked: UserData.instance.documentLikeList.contains("${snapshot.data!.docs[index].id}") ? true : false,
-                                                circleColor: CircleColor(start: Color(0xFFF44336), end: Color(0xFFF44336)),
-                                                likeBuilder: (bool isLiked) {
-                                                  return Icon(
-                                                    Icons.favorite,
-                                                    size: 30,
-                                                    color: isLiked ? Colors.red : Colors.white70,
-                                                  );
-                                                },
-                                                onTap: (result) async {
-                                                  HapticFeedback.heavyImpact();
-                                                  if (result) {
-                                                    result = false;
-                                                    UserData.instance.documentLikeList.remove("${snapshot.data!.docs[index].id}");
-                                                    if (mounted) {setState(() {});}
-                                                    await FirebaseFunctions.instanceFor(app: Firebase.app(), region: 'us-central1').httpsCallable('likePhoto_false')
-                                                    .call(
-                                                      <String, String>{
-                                                      'userUid': UserData.instance.user,
-                                                      'postUid': snapshot.data!.docs[index]['post_uid'],
-                                                      'postId': snapshot.data!.docs[index].id}
-                                                    );
-                                                  } else {
-                                                    result = true;
-                                                    UserData.instance.documentLikeList.add("${snapshot.data!.docs[index].id}");
-                                                    if (mounted) {setState(() {});}
-                                                    await FirebaseFunctions.instanceFor(app: Firebase.app(), region: 'us-central1').httpsCallable('likePhoto_true')
-                                                    .call(
-                                                      <String, String>{
-                                                      'userUid': UserData.instance.user,
-                                                      'postUid': snapshot.data!.docs[index]['post_uid'],
-                                                      'postId': snapshot.data!.docs[index].id}
-                                                    );
-                                                  }
-                                                },
-                                              ),
-                                            ),
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                  );
-                                },
-                              );
-                            } else {
-                              return Container();
-                            }
-                          },
-                        ),
-                      ),
-                      Container(
-                        margin: EdgeInsets.only(top: 12, right: 12, left: 12),
-                        child: StreamBuilder(
-                          stream: FirebaseFirestore.instance
-                            .collection('posts')
-                            .where('post_tags', arrayContains: 'ロック')
-                            .orderBy("post_count", descending: true)
-                            .snapshots(),
-                          builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                            if (snapshot.hasData) {
-                              return StaggeredGridView.countBuilder(
-                                crossAxisCount: 2,
-                                crossAxisSpacing: 10,
-                                mainAxisSpacing: 12,
-                                itemCount: snapshot.data!.docs.length,
-                                staggeredTileBuilder: (index) => StaggeredTile.fit(1),
-                                itemBuilder: (context, index) {
-                                  return Container(
-                                    child: Stack(
-                                      alignment: Alignment.bottomLeft,
-                                      children: [
-                                        GestureDetector(
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              color: Colors.transparent,
-                                              borderRadius: BorderRadius.all(
-                                                Radius.circular(10),
-                                              )
-                                            ),
-                                            child: ClipRRect(
-                                              borderRadius: BorderRadius.circular(10.0),
-                                              child: snapshot.data!.docs[index]["post_image_500"] == null ? Image.network("") : Image.network(
-                                                snapshot.data!.docs[index]["post_image_500"],
-                                              ),
-                                            ),
-                                          ),
-                                          onTap: () async {
-                                            if (snapshot.data!.docs[index]["post_image_500"].isNotEmpty) {
-                                              await Navigator.push(
-                                                context,
-                                                MaterialPageRoute(builder: (context) => Item("${snapshot.data!.docs[index].id}",)),
-                                              );
-                                              like();
-                                            }
-                                          },
-                                        ),
-                                        Align(
-                                          alignment: Alignment.bottomLeft,
-                                          child: GestureDetector(
-                                            child: Container(
-                                              margin: EdgeInsets.only(left: 10, bottom: 9),
-                                              width: 30.w,
-                                              child: Text(
-                                                "${snapshot.data!.docs[index]["post_instagram"]}",
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 11.sp,
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
-                                                maxLines: 1,
-                                              ),
-                                            ),
-                                            onTap: () async {
-                                              if (snapshot.data!.docs[index]["post_uid"].isNotEmpty) {
-                                                await Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(builder: (context) => ProfileMain("${snapshot.data!.docs[index]["post_uid"]}")),
-                                                );
-                                                like();
-                                              }
-                                            },
-                                          ),
-                                        ),
-                                        Align(
-                                          alignment: Alignment.bottomRight,
-                                          child: GestureDetector(
-                                            child: Container(
-                                              width: 40,
-                                              height: 35,
-                                              child: LikeButton(
-                                                isLiked: UserData.instance.documentLikeList.contains("${snapshot.data!.docs[index].id}") ? true : false,
-                                                circleColor: CircleColor(start: Color(0xFFF44336), end: Color(0xFFF44336)),
-                                                likeBuilder: (bool isLiked) {
-                                                  return Icon(
-                                                    Icons.favorite,
-                                                    size: 30,
-                                                    color: isLiked ? Colors.red : Colors.white70,
-                                                  );
-                                                },
-                                                onTap: (result) async {
-                                                  HapticFeedback.heavyImpact();
-                                                  if (result) {
-                                                    result = false;
-                                                    UserData.instance.documentLikeList.remove("${snapshot.data!.docs[index].id}");
-                                                    if (mounted) {setState(() {});}
-                                                    await FirebaseFunctions.instanceFor(app: Firebase.app(), region: 'us-central1').httpsCallable('likePhoto_false')
-                                                    .call(
-                                                      <String, String>{
-                                                      'userUid': UserData.instance.user,
-                                                      'postUid': snapshot.data!.docs[index]['post_uid'],
-                                                      'postId': snapshot.data!.docs[index].id}
-                                                    );
-                                                  } else {
-                                                    result = true;
-                                                    UserData.instance.documentLikeList.add("${snapshot.data!.docs[index].id}");
-                                                    if (mounted) {setState(() {});}
-                                                    await FirebaseFunctions.instanceFor(app: Firebase.app(), region: 'us-central1').httpsCallable('likePhoto_true')
-                                                    .call(
-                                                      <String, String>{
-                                                      'userUid': UserData.instance.user,
-                                                      'postUid': snapshot.data!.docs[index]['post_uid'],
-                                                      'postId': snapshot.data!.docs[index].id}
-                                                    );
+                                                    await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                                                      .update({'user_likes': FieldValue.arrayUnion([snapshot.data!.docs[index].id])});
+                                                    await FirebaseFirestore.instance.collection('users').doc(snapshot.data!.docs[index]['post_uid'])
+                                                      .update({'user_like_count': FieldValue.increment(1)});
+                                                    await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                                                      .update({'post_count': FieldValue.increment(1)});
+                                                    await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                                                      .update({'post_liker': FieldValue.arrayUnion([snapshot.data!.docs[index]['post_uid']])});
                                                   }
                                                 },
                                               ),
@@ -1539,7 +916,7 @@ class _PhotoMainState extends State<PhotoMain> {
                                             if (snapshot.data!.docs[index]["post_image_500"].isNotEmpty) {
                                               await Navigator.push(
                                                 context,
-                                                MaterialPageRoute(builder: (context) => Item("${snapshot.data!.docs[index].id}",)),
+                                                MaterialPageRoute(builder: (context) => Item(snapshot.data!.docs[index].id)),
                                               );
                                               like();
                                             }
@@ -1552,7 +929,7 @@ class _PhotoMainState extends State<PhotoMain> {
                                               margin: EdgeInsets.only(left: 10, bottom: 9),
                                               width: 30.w,
                                               child: Text(
-                                                "${snapshot.data!.docs[index]["post_instagram"]}",
+                                                snapshot.data!.docs[index]["post_instagram"],
                                                 style: TextStyle(
                                                   color: Colors.white,
                                                   fontWeight: FontWeight.bold,
@@ -1566,7 +943,7 @@ class _PhotoMainState extends State<PhotoMain> {
                                               if (snapshot.data!.docs[index]["post_uid"].isNotEmpty) {
                                                 await Navigator.push(
                                                   context,
-                                                  MaterialPageRoute(builder: (context) => ProfileMain("${snapshot.data!.docs[index]["post_uid"]}")),
+                                                  MaterialPageRoute(builder: (context) => ProfileMain(snapshot.data!.docs[index]["post_uid"])),
                                                 );
                                                 like();
                                               }
@@ -1580,7 +957,7 @@ class _PhotoMainState extends State<PhotoMain> {
                                               width: 40,
                                               height: 35,
                                               child: LikeButton(
-                                                isLiked: UserData.instance.documentLikeList.contains("${snapshot.data!.docs[index].id}") ? true : false,
+                                                isLiked: UserData.instance.documentLikeList.contains(snapshot.data!.docs[index].id) ? true : false,
                                                 circleColor: CircleColor(start: Color(0xFFF44336), end: Color(0xFFF44336)),
                                                 likeBuilder: (bool isLiked) {
                                                   return Icon(
@@ -1593,26 +970,28 @@ class _PhotoMainState extends State<PhotoMain> {
                                                   HapticFeedback.heavyImpact();
                                                   if (result) {
                                                     result = false;
-                                                    UserData.instance.documentLikeList.remove("${snapshot.data!.docs[index].id}");
+                                                    UserData.instance.documentLikeList.remove(snapshot.data!.docs[index].id);
                                                     if (mounted) {setState(() {});}
-                                                    await FirebaseFunctions.instanceFor(app: Firebase.app(), region: 'us-central1').httpsCallable('likePhoto_false')
-                                                    .call(
-                                                      <String, String>{
-                                                      'userUid': UserData.instance.user,
-                                                      'postUid': snapshot.data!.docs[index]['post_uid'],
-                                                      'postId': snapshot.data!.docs[index].id}
-                                                    );
+                                                    await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                                                      .update({'user_likes': FieldValue.arrayRemove([snapshot.data!.docs[index].id])});
+                                                    await FirebaseFirestore.instance.collection('users').doc(snapshot.data!.docs[index]['post_uid'])
+                                                      .update({'user_like_count': FieldValue.increment(-1)});
+                                                    await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                                                      .update({'post_count': FieldValue.increment(-1)});
+                                                    await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                                                      .update({'post_liker': FieldValue.arrayRemove([snapshot.data!.docs[index]['post_uid']])});
                                                   } else {
                                                     result = true;
-                                                    UserData.instance.documentLikeList.add("${snapshot.data!.docs[index].id}");
+                                                    UserData.instance.documentLikeList.add(snapshot.data!.docs[index].id);
                                                     if (mounted) {setState(() {});}
-                                                    await FirebaseFunctions.instanceFor(app: Firebase.app(), region: 'us-central1').httpsCallable('likePhoto_true')
-                                                    .call(
-                                                      <String, String>{
-                                                      'userUid': UserData.instance.user,
-                                                      'postUid': snapshot.data!.docs[index]['post_uid'],
-                                                      'postId': snapshot.data!.docs[index].id}
-                                                    );
+                                                    await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                                                      .update({'user_likes': FieldValue.arrayUnion([snapshot.data!.docs[index].id])});
+                                                    await FirebaseFirestore.instance.collection('users').doc(snapshot.data!.docs[index]['post_uid'])
+                                                      .update({'user_like_count': FieldValue.increment(1)});
+                                                    await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                                                      .update({'post_count': FieldValue.increment(1)});
+                                                    await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                                                      .update({'post_liker': FieldValue.arrayUnion([snapshot.data!.docs[index]['post_uid']])});
                                                   }
                                                 },
                                               ),
@@ -1630,6 +1009,1071 @@ class _PhotoMainState extends State<PhotoMain> {
                           },
                         ),
                       ),
+
+                      // Container(
+                      //   margin: EdgeInsets.only(top: 12, right: 12, left: 12),
+                      //   child: StreamBuilder(
+                      //     stream: FirebaseFirestore.instance
+                      //       .collection('posts')
+                      //       .where('post_tags', arrayContains: 'ストリート')
+                      //       .orderBy("post_count", descending: true)
+                      //       .snapshots(),
+                      //     builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                      //       if (snapshot.hasData) {
+                      //         return StaggeredGridView.countBuilder(
+                      //           crossAxisCount: 2,
+                      //           crossAxisSpacing: 10,
+                      //           mainAxisSpacing: 12,
+                      //           itemCount: snapshot.data!.docs.length,
+                      //           staggeredTileBuilder: (index) => StaggeredTile.fit(1),
+                      //           itemBuilder: (context, index) {
+                      //             return Container(
+                      //               child: Stack(
+                      //                 alignment: Alignment.bottomLeft,
+                      //                 children: [
+                      //                   GestureDetector(
+                      //                     child: Container(
+                      //                       decoration: BoxDecoration(
+                      //                         color: Colors.transparent,
+                      //                         borderRadius: BorderRadius.all(
+                      //                           Radius.circular(10),
+                      //                         )
+                      //                       ),
+                      //                       child: ClipRRect(
+                      //                         borderRadius: BorderRadius.circular(10.0),
+                      //                         child: snapshot.data!.docs[index]["post_image_500"] == null ? Image.network("") : Image.network(
+                      //                           snapshot.data!.docs[index]["post_image_500"],
+                      //                         ),
+                      //                       ),
+                      //                     ),
+                      //                     onTap: () async {
+                      //                       if (snapshot.data!.docs[index]["post_image_500"].isNotEmpty) {
+                      //                         await Navigator.push(
+                      //                           context,
+                      //                           MaterialPageRoute(builder: (context) => Item(snapshot.data!.docs[index].id)),
+                      //                         );
+                      //                         like();
+                      //                       }
+                      //                     },
+                      //                   ),
+                      //                   Align(
+                      //                     alignment: Alignment.bottomLeft,
+                      //                     child: GestureDetector(
+                      //                       child: Container(
+                      //                         margin: EdgeInsets.only(left: 10, bottom: 9),
+                      //                         width: 30.w,
+                      //                         child: Text(
+                      //                           snapshot.data!.docs[index]["post_instagram"],
+                      //                           style: TextStyle(
+                      //                             color: Colors.white,
+                      //                             fontWeight: FontWeight.bold,
+                      //                             fontSize: 11.sp,
+                      //                           ),
+                      //                           overflow: TextOverflow.ellipsis,
+                      //                           maxLines: 1,
+                      //                         ),
+                      //                       ),
+                      //                       onTap: () async {
+                      //                         if (snapshot.data!.docs[index]["post_uid"].isNotEmpty) {
+                      //                           await Navigator.push(
+                      //                             context,
+                      //                             MaterialPageRoute(builder: (context) => ProfileMain(snapshot.data!.docs[index]["post_uid"])),
+                      //                           );
+                      //                           like();
+                      //                         }
+                      //                       },
+                      //                     ),
+                      //                   ),
+                      //                   Align(
+                      //                     alignment: Alignment.bottomRight,
+                      //                     child: GestureDetector(
+                      //                       child: Container(
+                      //                         width: 40,
+                      //                         height: 35,
+                      //                         child: LikeButton(
+                      //                           isLiked: UserData.instance.documentLikeList.contains(snapshot.data!.docs[index].id) ? true : false,
+                      //                           circleColor: CircleColor(start: Color(0xFFF44336), end: Color(0xFFF44336)),
+                      //                           likeBuilder: (bool isLiked) {
+                      //                             return Icon(
+                      //                               Icons.favorite,
+                      //                               size: 30,
+                      //                               color: isLiked ? Colors.red : Colors.white70,
+                      //                             );
+                      //                           },
+                      //                           onTap: (result) async {
+                      //                             HapticFeedback.heavyImpact();
+                      //                             if (result) {
+                      //                               result = false;
+                      //                               UserData.instance.documentLikeList.remove(snapshot.data!.docs[index].id);
+                      //                               if (mounted) {setState(() {});}
+                      //                               await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                      //                                 .update({'user_likes': FieldValue.arrayRemove([snapshot.data!.docs[index].id])});
+                      //                               await FirebaseFirestore.instance.collection('users').doc(snapshot.data!.docs[index]['post_uid'])
+                      //                                 .update({'user_like_count': FieldValue.increment(-1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_count': FieldValue.increment(-1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_liker': FieldValue.arrayRemove([snapshot.data!.docs[index]['post_uid']])});
+                      //                             } else {
+                      //                               result = true;
+                      //                               UserData.instance.documentLikeList.add(snapshot.data!.docs[index].id);
+                      //                               if (mounted) {setState(() {});}
+                      //                               await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                      //                                 .update({'user_likes': FieldValue.arrayUnion([snapshot.data!.docs[index].id])});
+                      //                               await FirebaseFirestore.instance.collection('users').doc(snapshot.data!.docs[index]['post_uid'])
+                      //                                 .update({'user_like_count': FieldValue.increment(1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_count': FieldValue.increment(1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_liker': FieldValue.arrayUnion([snapshot.data!.docs[index]['post_uid']])});
+                      //                             }
+                      //                           },
+                      //                         ),
+                      //                       ),
+                      //                     ),
+                      //                   )
+                      //                 ],
+                      //               ),
+                      //             );
+                      //           },
+                      //         );
+                      //       } else {
+                      //         return Container();
+                      //       }
+                      //     },
+                      //   ),
+                      // ),
+                      // Container(
+                      //   margin: EdgeInsets.only(top: 12, right: 12, left: 12),
+                      //   child: StreamBuilder(
+                      //     stream: FirebaseFirestore.instance
+                      //       .collection('posts')
+                      //       .where('post_tags', arrayContains: 'クラシック')
+                      //       .orderBy("post_count", descending: true)
+                      //       .snapshots(),
+                      //     builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                      //       if (snapshot.hasData) {
+                      //         return StaggeredGridView.countBuilder(
+                      //           crossAxisCount: 2,
+                      //           crossAxisSpacing: 10,
+                      //           mainAxisSpacing: 12,
+                      //           itemCount: snapshot.data!.docs.length,
+                      //           staggeredTileBuilder: (index) => StaggeredTile.fit(1),
+                      //           itemBuilder: (context, index) {
+                      //             return Container(
+                      //               child: Stack(
+                      //                 alignment: Alignment.bottomLeft,
+                      //                 children: [
+                      //                   GestureDetector(
+                      //                     child: Container(
+                      //                       decoration: BoxDecoration(
+                      //                         color: Colors.transparent,
+                      //                         borderRadius: BorderRadius.all(
+                      //                           Radius.circular(10),
+                      //                         )
+                      //                       ),
+                      //                       child: ClipRRect(
+                      //                         borderRadius: BorderRadius.circular(10.0),
+                      //                         child: snapshot.data!.docs[index]["post_image_500"] == null ? Image.network("") : Image.network(
+                      //                           snapshot.data!.docs[index]["post_image_500"],
+                      //                         ),
+                      //                       ),
+                      //                     ),
+                      //                     onTap: () async {
+                      //                       if (snapshot.data!.docs[index]["post_image_500"].isNotEmpty) {
+                      //                         await Navigator.push(
+                      //                           context,
+                      //                           MaterialPageRoute(builder: (context) => Item(snapshot.data!.docs[index].id)),
+                      //                         );
+                      //                         like();
+                      //                       }
+                      //                     },
+                      //                   ),
+                      //                   Align(
+                      //                     alignment: Alignment.bottomLeft,
+                      //                     child: GestureDetector(
+                      //                       child: Container(
+                      //                         margin: EdgeInsets.only(left: 10, bottom: 9),
+                      //                         width: 30.w,
+                      //                         child: Text(
+                      //                           snapshot.data!.docs[index]["post_instagram"],
+                      //                           style: TextStyle(
+                      //                             color: Colors.white,
+                      //                             fontWeight: FontWeight.bold,
+                      //                             fontSize: 11.sp,
+                      //                           ),
+                      //                           overflow: TextOverflow.ellipsis,
+                      //                           maxLines: 1,
+                      //                         ),
+                      //                       ),
+                      //                       onTap: () async {
+                      //                         if (snapshot.data!.docs[index]["post_uid"].isNotEmpty) {
+                      //                           await Navigator.push(
+                      //                             context,
+                      //                             MaterialPageRoute(builder: (context) => ProfileMain(snapshot.data!.docs[index]["post_uid"])),
+                      //                           );
+                      //                           like();
+                      //                         }
+                      //                       },
+                      //                     ),
+                      //                   ),
+                      //                   Align(
+                      //                     alignment: Alignment.bottomRight,
+                      //                     child: GestureDetector(
+                      //                       child: Container(
+                      //                         width: 40,
+                      //                         height: 35,
+                      //                         child: LikeButton(
+                      //                           isLiked: UserData.instance.documentLikeList.contains(snapshot.data!.docs[index].id) ? true : false,
+                      //                           circleColor: CircleColor(start: Color(0xFFF44336), end: Color(0xFFF44336)),
+                      //                           likeBuilder: (bool isLiked) {
+                      //                             return Icon(
+                      //                               Icons.favorite,
+                      //                               size: 30,
+                      //                               color: isLiked ? Colors.red : Colors.white70,
+                      //                             );
+                      //                           },
+                      //                           onTap: (result) async {
+                      //                             HapticFeedback.heavyImpact();
+                      //                             if (result) {
+                      //                               result = false;
+                      //                               UserData.instance.documentLikeList.remove(snapshot.data!.docs[index].id);
+                      //                               if (mounted) {setState(() {});}
+                      //                               await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                      //                                 .update({'user_likes': FieldValue.arrayRemove([snapshot.data!.docs[index].id])});
+                      //                               await FirebaseFirestore.instance.collection('users').doc(snapshot.data!.docs[index]['post_uid'])
+                      //                                 .update({'user_like_count': FieldValue.increment(-1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_count': FieldValue.increment(-1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_liker': FieldValue.arrayRemove([snapshot.data!.docs[index]['post_uid']])});
+                      //                             } else {
+                      //                               result = true;
+                      //                               UserData.instance.documentLikeList.add(snapshot.data!.docs[index].id);
+                      //                               if (mounted) {setState(() {});}
+                      //                               await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                      //                                 .update({'user_likes': FieldValue.arrayUnion([snapshot.data!.docs[index].id])});
+                      //                               await FirebaseFirestore.instance.collection('users').doc(snapshot.data!.docs[index]['post_uid'])
+                      //                                 .update({'user_like_count': FieldValue.increment(1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_count': FieldValue.increment(1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_liker': FieldValue.arrayUnion([snapshot.data!.docs[index]['post_uid']])});
+                      //                             }
+                      //                           },
+                      //                         ),
+                      //                       ),
+                      //                     ),
+                      //                   )
+                      //                 ],
+                      //               ),
+                      //             );
+                      //           },
+                      //         );
+                      //       } else {
+                      //         return Container();
+                      //       }
+                      //     },
+                      //   ),
+                      // ),
+                      // Container(
+                      //   margin: EdgeInsets.only(top: 12, right: 12, left: 12),
+                      //   child: StreamBuilder(
+                      //     stream: FirebaseFirestore.instance
+                      //       .collection('posts')
+                      //       .where('post_tags', arrayContains: 'モード')
+                      //       .orderBy("post_count", descending: true)
+                      //       .snapshots(),
+                      //     builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                      //       if (snapshot.hasData) {
+                      //         return StaggeredGridView.countBuilder(
+                      //           crossAxisCount: 2,
+                      //           crossAxisSpacing: 10,
+                      //           mainAxisSpacing: 12,
+                      //           itemCount: snapshot.data!.docs.length,
+                      //           staggeredTileBuilder: (index) => StaggeredTile.fit(1),
+                      //           itemBuilder: (context, index) {
+                      //             return Container(
+                      //               child: Stack(
+                      //                 alignment: Alignment.bottomLeft,
+                      //                 children: [
+                      //                   GestureDetector(
+                      //                     child: Container(
+                      //                       decoration: BoxDecoration(
+                      //                         color: Colors.transparent,
+                      //                         borderRadius: BorderRadius.all(
+                      //                           Radius.circular(10),
+                      //                         )
+                      //                       ),
+                      //                       child: ClipRRect(
+                      //                         borderRadius: BorderRadius.circular(10.0),
+                      //                         child: snapshot.data!.docs[index]["post_image_500"] == null ? Image.network("") : Image.network(
+                      //                           snapshot.data!.docs[index]["post_image_500"],
+                      //                         ),
+                      //                       ),
+                      //                     ),
+                      //                     onTap: () async {
+                      //                       if (snapshot.data!.docs[index]["post_image_500"].isNotEmpty) {
+                      //                         await Navigator.push(
+                      //                           context,
+                      //                           MaterialPageRoute(builder: (context) => Item(snapshot.data!.docs[index].id)),
+                      //                         );
+                      //                         like();
+                      //                       }
+                      //                     },
+                      //                   ),
+                      //                   Align(
+                      //                     alignment: Alignment.bottomLeft,
+                      //                     child: GestureDetector(
+                      //                       child: Container(
+                      //                         margin: EdgeInsets.only(left: 10, bottom: 9),
+                      //                         width: 30.w,
+                      //                         child: Text(
+                      //                           snapshot.data!.docs[index]["post_instagram"],
+                      //                           style: TextStyle(
+                      //                             color: Colors.white,
+                      //                             fontWeight: FontWeight.bold,
+                      //                             fontSize: 11.sp,
+                      //                           ),
+                      //                           overflow: TextOverflow.ellipsis,
+                      //                           maxLines: 1,
+                      //                         ),
+                      //                       ),
+                      //                       onTap: () async {
+                      //                         if (snapshot.data!.docs[index]["post_uid"].isNotEmpty) {
+                      //                           await Navigator.push(
+                      //                             context,
+                      //                             MaterialPageRoute(builder: (context) => ProfileMain(snapshot.data!.docs[index]["post_uid"])),
+                      //                           );
+                      //                           like();
+                      //                         }
+                      //                       },
+                      //                     ),
+                      //                   ),
+                      //                   Align(
+                      //                     alignment: Alignment.bottomRight,
+                      //                     child: GestureDetector(
+                      //                       child: Container(
+                      //                         width: 40,
+                      //                         height: 35,
+                      //                         child: LikeButton(
+                      //                           isLiked: UserData.instance.documentLikeList.contains(snapshot.data!.docs[index].id) ? true : false,
+                      //                           circleColor: CircleColor(start: Color(0xFFF44336), end: Color(0xFFF44336)),
+                      //                           likeBuilder: (bool isLiked) {
+                      //                             return Icon(
+                      //                               Icons.favorite,
+                      //                               size: 30,
+                      //                               color: isLiked ? Colors.red : Colors.white70,
+                      //                             );
+                      //                           },
+                      //                           onTap: (result) async {
+                      //                             HapticFeedback.heavyImpact();
+                      //                             if (result) {
+                      //                               result = false;
+                      //                               UserData.instance.documentLikeList.remove(snapshot.data!.docs[index].id);
+                      //                               if (mounted) {setState(() {});}
+                      //                               await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                      //                                 .update({'user_likes': FieldValue.arrayRemove([snapshot.data!.docs[index].id])});
+                      //                               await FirebaseFirestore.instance.collection('users').doc(snapshot.data!.docs[index]['post_uid'])
+                      //                                 .update({'user_like_count': FieldValue.increment(-1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_count': FieldValue.increment(-1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_liker': FieldValue.arrayRemove([snapshot.data!.docs[index]['post_uid']])});
+                      //                             } else {
+                      //                               result = true;
+                      //                               UserData.instance.documentLikeList.add(snapshot.data!.docs[index].id);
+                      //                               if (mounted) {setState(() {});}
+                      //                               await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                      //                                 .update({'user_likes': FieldValue.arrayUnion([snapshot.data!.docs[index].id])});
+                      //                               await FirebaseFirestore.instance.collection('users').doc(snapshot.data!.docs[index]['post_uid'])
+                      //                                 .update({'user_like_count': FieldValue.increment(1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_count': FieldValue.increment(1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_liker': FieldValue.arrayUnion([snapshot.data!.docs[index]['post_uid']])});
+                      //                             }
+                      //                           },
+                      //                         ),
+                      //                       ),
+                      //                     ),
+                      //                   )
+                      //                 ],
+                      //               ),
+                      //             );
+                      //           },
+                      //         );
+                      //       } else {
+                      //         return Container();
+                      //       }
+                      //     },
+                      //   ),
+                      // ),
+                      // Container(
+                      //   margin: EdgeInsets.only(top: 12, right: 12, left: 12),
+                      //   child: StreamBuilder(
+                      //     stream: FirebaseFirestore.instance
+                      //       .collection('posts')
+                      //       .where('post_tags', arrayContains: 'フェミニン')
+                      //       .orderBy("post_count", descending: true)
+                      //       .snapshots(),
+                      //     builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                      //       if (snapshot.hasData) {
+                      //         return StaggeredGridView.countBuilder(
+                      //           crossAxisCount: 2,
+                      //           crossAxisSpacing: 10,
+                      //           mainAxisSpacing: 12,
+                      //           itemCount: snapshot.data!.docs.length,
+                      //           staggeredTileBuilder: (index) => StaggeredTile.fit(1),
+                      //           itemBuilder: (context, index) {
+                      //             return Container(
+                      //               child: Stack(
+                      //                 alignment: Alignment.bottomLeft,
+                      //                 children: [
+                      //                   GestureDetector(
+                      //                     child: Container(
+                      //                       decoration: BoxDecoration(
+                      //                         color: Colors.transparent,
+                      //                         borderRadius: BorderRadius.all(
+                      //                           Radius.circular(10),
+                      //                         )
+                      //                       ),
+                      //                       child: ClipRRect(
+                      //                         borderRadius: BorderRadius.circular(10.0),
+                      //                         child: snapshot.data!.docs[index]["post_image_500"] == null ? Image.network("") : Image.network(
+                      //                           snapshot.data!.docs[index]["post_image_500"],
+                      //                         ),
+                      //                       ),
+                      //                     ),
+                      //                     onTap: () async {
+                      //                       if (snapshot.data!.docs[index]["post_image_500"].isNotEmpty) {
+                      //                         await Navigator.push(
+                      //                           context,
+                      //                           MaterialPageRoute(builder: (context) => Item(snapshot.data!.docs[index].id)),
+                      //                         );
+                      //                         like();
+                      //                       }
+                      //                     },
+                      //                   ),
+                      //                   Align(
+                      //                     alignment: Alignment.bottomLeft,
+                      //                     child: GestureDetector(
+                      //                       child: Container(
+                      //                         margin: EdgeInsets.only(left: 10, bottom: 9),
+                      //                         width: 30.w,
+                      //                         child: Text(
+                      //                           snapshot.data!.docs[index]["post_instagram"],
+                      //                           style: TextStyle(
+                      //                             color: Colors.white,
+                      //                             fontWeight: FontWeight.bold,
+                      //                             fontSize: 11.sp,
+                      //                           ),
+                      //                           overflow: TextOverflow.ellipsis,
+                      //                           maxLines: 1,
+                      //                         ),
+                      //                       ),
+                      //                       onTap: () async {
+                      //                         if (snapshot.data!.docs[index]["post_uid"].isNotEmpty) {
+                      //                           await Navigator.push(
+                      //                             context,
+                      //                             MaterialPageRoute(builder: (context) => ProfileMain(snapshot.data!.docs[index]["post_uid"])),
+                      //                           );
+                      //                           like();
+                      //                         }
+                      //                       },
+                      //                     ),
+                      //                   ),
+                      //                   Align(
+                      //                     alignment: Alignment.bottomRight,
+                      //                     child: GestureDetector(
+                      //                       child: Container(
+                      //                         width: 40,
+                      //                         height: 35,
+                      //                         child: LikeButton(
+                      //                           isLiked: UserData.instance.documentLikeList.contains(snapshot.data!.docs[index].id) ? true : false,
+                      //                           circleColor: CircleColor(start: Color(0xFFF44336), end: Color(0xFFF44336)),
+                      //                           likeBuilder: (bool isLiked) {
+                      //                             return Icon(
+                      //                               Icons.favorite,
+                      //                               size: 30,
+                      //                               color: isLiked ? Colors.red : Colors.white70,
+                      //                             );
+                      //                           },
+                      //                           onTap: (result) async {
+                      //                             HapticFeedback.heavyImpact();
+                      //                             if (result) {
+                      //                               result = false;
+                      //                               UserData.instance.documentLikeList.remove(snapshot.data!.docs[index].id);
+                      //                               if (mounted) {setState(() {});}
+                      //                               await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                      //                                 .update({'user_likes': FieldValue.arrayRemove([snapshot.data!.docs[index].id])});
+                      //                               await FirebaseFirestore.instance.collection('users').doc(snapshot.data!.docs[index]['post_uid'])
+                      //                                 .update({'user_like_count': FieldValue.increment(-1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_count': FieldValue.increment(-1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_liker': FieldValue.arrayRemove([snapshot.data!.docs[index]['post_uid']])});
+                      //                             } else {
+                      //                               result = true;
+                      //                               UserData.instance.documentLikeList.add(snapshot.data!.docs[index].id);
+                      //                               if (mounted) {setState(() {});}
+                      //                               await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                      //                                 .update({'user_likes': FieldValue.arrayUnion([snapshot.data!.docs[index].id])});
+                      //                               await FirebaseFirestore.instance.collection('users').doc(snapshot.data!.docs[index]['post_uid'])
+                      //                                 .update({'user_like_count': FieldValue.increment(1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_count': FieldValue.increment(1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_liker': FieldValue.arrayUnion([snapshot.data!.docs[index]['post_uid']])});
+                      //                             }
+                      //                           },
+                      //                         ),
+                      //                       ),
+                      //                     ),
+                      //                   )
+                      //                 ],
+                      //               ),
+                      //             );
+                      //           },
+                      //         );
+                      //       } else {
+                      //         return Container();
+                      //       }
+                      //     },
+                      //   ),
+                      // ),
+                      // Container(
+                      //   margin: EdgeInsets.only(top: 12, right: 12, left: 12),
+                      //   child: StreamBuilder(
+                      //     stream: FirebaseFirestore.instance
+                      //       .collection('posts')
+                      //       .where('post_tags', arrayContains: 'グランジ')
+                      //       .orderBy("post_count", descending: true)
+                      //       .snapshots(),
+                      //     builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                      //       if (snapshot.hasData) {
+                      //         return StaggeredGridView.countBuilder(
+                      //           crossAxisCount: 2,
+                      //           crossAxisSpacing: 10,
+                      //           mainAxisSpacing: 12,
+                      //           itemCount: snapshot.data!.docs.length,
+                      //           staggeredTileBuilder: (index) => StaggeredTile.fit(1),
+                      //           itemBuilder: (context, index) {
+                      //             return Container(
+                      //               child: Stack(
+                      //                 alignment: Alignment.bottomLeft,
+                      //                 children: [
+                      //                   GestureDetector(
+                      //                     child: Container(
+                      //                       decoration: BoxDecoration(
+                      //                         color: Colors.transparent,
+                      //                         borderRadius: BorderRadius.all(
+                      //                           Radius.circular(10),
+                      //                         )
+                      //                       ),
+                      //                       child: ClipRRect(
+                      //                         borderRadius: BorderRadius.circular(10.0),
+                      //                         child: snapshot.data!.docs[index]["post_image_500"] == null ? Image.network("") : Image.network(
+                      //                           snapshot.data!.docs[index]["post_image_500"],
+                      //                         ),
+                      //                       ),
+                      //                     ),
+                      //                     onTap: () async {
+                      //                       if (snapshot.data!.docs[index]["post_image_500"].isNotEmpty) {
+                      //                         await Navigator.push(
+                      //                           context,
+                      //                           MaterialPageRoute(builder: (context) => Item(snapshot.data!.docs[index].id)),
+                      //                         );
+                      //                         like();
+                      //                       }
+                      //                     },
+                      //                   ),
+                      //                   Align(
+                      //                     alignment: Alignment.bottomLeft,
+                      //                     child: GestureDetector(
+                      //                       child: Container(
+                      //                         margin: EdgeInsets.only(left: 10, bottom: 9),
+                      //                         width: 30.w,
+                      //                         child: Text(
+                      //                           snapshot.data!.docs[index]["post_instagram"],
+                      //                           style: TextStyle(
+                      //                             color: Colors.white,
+                      //                             fontWeight: FontWeight.bold,
+                      //                             fontSize: 11.sp,
+                      //                           ),
+                      //                           overflow: TextOverflow.ellipsis,
+                      //                           maxLines: 1,
+                      //                         ),
+                      //                       ),
+                      //                       onTap: () async {
+                      //                         if (snapshot.data!.docs[index]["post_uid"].isNotEmpty) {
+                      //                           await Navigator.push(
+                      //                             context,
+                      //                             MaterialPageRoute(builder: (context) => ProfileMain(snapshot.data!.docs[index]["post_uid"])),
+                      //                           );
+                      //                           like();
+                      //                         }
+                      //                       },
+                      //                     ),
+                      //                   ),
+                      //                   Align(
+                      //                     alignment: Alignment.bottomRight,
+                      //                     child: GestureDetector(
+                      //                       child: Container(
+                      //                         width: 40,
+                      //                         height: 35,
+                      //                         child: LikeButton(
+                      //                           isLiked: UserData.instance.documentLikeList.contains(snapshot.data!.docs[index].id) ? true : false,
+                      //                           circleColor: CircleColor(start: Color(0xFFF44336), end: Color(0xFFF44336)),
+                      //                           likeBuilder: (bool isLiked) {
+                      //                             return Icon(
+                      //                               Icons.favorite,
+                      //                               size: 30,
+                      //                               color: isLiked ? Colors.red : Colors.white70,
+                      //                             );
+                      //                           },
+                      //                           onTap: (result) async {
+                      //                             HapticFeedback.heavyImpact();
+                      //                             if (result) {
+                      //                               result = false;
+                      //                               UserData.instance.documentLikeList.remove(snapshot.data!.docs[index].id);
+                      //                               if (mounted) {setState(() {});}
+                      //                               await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                      //                                 .update({'user_likes': FieldValue.arrayRemove([snapshot.data!.docs[index].id])});
+                      //                               await FirebaseFirestore.instance.collection('users').doc(snapshot.data!.docs[index]['post_uid'])
+                      //                                 .update({'user_like_count': FieldValue.increment(-1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_count': FieldValue.increment(-1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_liker': FieldValue.arrayRemove([snapshot.data!.docs[index]['post_uid']])});
+                      //                             } else {
+                      //                               result = true;
+                      //                               UserData.instance.documentLikeList.add(snapshot.data!.docs[index].id);
+                      //                               if (mounted) {setState(() {});}
+                      //                               await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                      //                                 .update({'user_likes': FieldValue.arrayUnion([snapshot.data!.docs[index].id])});
+                      //                               await FirebaseFirestore.instance.collection('users').doc(snapshot.data!.docs[index]['post_uid'])
+                      //                                 .update({'user_like_count': FieldValue.increment(1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_count': FieldValue.increment(1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_liker': FieldValue.arrayUnion([snapshot.data!.docs[index]['post_uid']])});
+                      //                             }
+                      //                           },
+                      //                         ),
+                      //                       ),
+                      //                     ),
+                      //                   )
+                      //                 ],
+                      //               ),
+                      //             );
+                      //           },
+                      //         );
+                      //       } else {
+                      //         return Container();
+                      //       }
+                      //     },
+                      //   ),
+                      // ),
+                      // Container(
+                      //   margin: EdgeInsets.only(top: 12, right: 12, left: 12),
+                      //   child: StreamBuilder(
+                      //     stream: FirebaseFirestore.instance
+                      //       .collection('posts')
+                      //       .where('post_tags', arrayContains: 'アンニュイ')
+                      //       .orderBy("post_count", descending: true)
+                      //       .snapshots(),
+                      //     builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                      //       if (snapshot.hasData) {
+                      //         return StaggeredGridView.countBuilder(
+                      //           crossAxisCount: 2,
+                      //           crossAxisSpacing: 10,
+                      //           mainAxisSpacing: 12,
+                      //           itemCount: snapshot.data!.docs.length,
+                      //           staggeredTileBuilder: (index) => StaggeredTile.fit(1),
+                      //           itemBuilder: (context, index) {
+                      //             return Container(
+                      //               child: Stack(
+                      //                 alignment: Alignment.bottomLeft,
+                      //                 children: [
+                      //                   GestureDetector(
+                      //                     child: Container(
+                      //                       decoration: BoxDecoration(
+                      //                         color: Colors.transparent,
+                      //                         borderRadius: BorderRadius.all(
+                      //                           Radius.circular(10),
+                      //                         )
+                      //                       ),
+                      //                       child: ClipRRect(
+                      //                         borderRadius: BorderRadius.circular(10.0),
+                      //                         child: snapshot.data!.docs[index]["post_image_500"] == null ? Image.network("") : Image.network(
+                      //                           snapshot.data!.docs[index]["post_image_500"],
+                      //                         ),
+                      //                       ),
+                      //                     ),
+                      //                     onTap: () async {
+                      //                       if (snapshot.data!.docs[index]["post_image_500"].isNotEmpty) {
+                      //                         await Navigator.push(
+                      //                           context,
+                      //                           MaterialPageRoute(builder: (context) => Item(snapshot.data!.docs[index].id)),
+                      //                         );
+                      //                         like();
+                      //                       }
+                      //                     },
+                      //                   ),
+                      //                   Align(
+                      //                     alignment: Alignment.bottomLeft,
+                      //                     child: GestureDetector(
+                      //                       child: Container(
+                      //                         margin: EdgeInsets.only(left: 10, bottom: 9),
+                      //                         width: 30.w,
+                      //                         child: Text(
+                      //                           snapshot.data!.docs[index]["post_instagram"],
+                      //                           style: TextStyle(
+                      //                             color: Colors.white,
+                      //                             fontWeight: FontWeight.bold,
+                      //                             fontSize: 11.sp,
+                      //                           ),
+                      //                           overflow: TextOverflow.ellipsis,
+                      //                           maxLines: 1,
+                      //                         ),
+                      //                       ),
+                      //                       onTap: () async {
+                      //                         if (snapshot.data!.docs[index]["post_uid"].isNotEmpty) {
+                      //                           await Navigator.push(
+                      //                             context,
+                      //                             MaterialPageRoute(builder: (context) => ProfileMain(snapshot.data!.docs[index]["post_uid"])),
+                      //                           );
+                      //                           like();
+                      //                         }
+                      //                       },
+                      //                     ),
+                      //                   ),
+                      //                   Align(
+                      //                     alignment: Alignment.bottomRight,
+                      //                     child: GestureDetector(
+                      //                       child: Container(
+                      //                         width: 40,
+                      //                         height: 35,
+                      //                         child: LikeButton(
+                      //                           isLiked: UserData.instance.documentLikeList.contains(snapshot.data!.docs[index].id) ? true : false,
+                      //                           circleColor: CircleColor(start: Color(0xFFF44336), end: Color(0xFFF44336)),
+                      //                           likeBuilder: (bool isLiked) {
+                      //                             return Icon(
+                      //                               Icons.favorite,
+                      //                               size: 30,
+                      //                               color: isLiked ? Colors.red : Colors.white70,
+                      //                             );
+                      //                           },
+                      //                           onTap: (result) async {
+                      //                             HapticFeedback.heavyImpact();
+                      //                             if (result) {
+                      //                               result = false;
+                      //                               UserData.instance.documentLikeList.remove(snapshot.data!.docs[index].id);
+                      //                               if (mounted) {setState(() {});}
+                      //                               await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                      //                                 .update({'user_likes': FieldValue.arrayRemove([snapshot.data!.docs[index].id])});
+                      //                               await FirebaseFirestore.instance.collection('users').doc(snapshot.data!.docs[index]['post_uid'])
+                      //                                 .update({'user_like_count': FieldValue.increment(-1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_count': FieldValue.increment(-1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_liker': FieldValue.arrayRemove([snapshot.data!.docs[index]['post_uid']])});
+                      //                             } else {
+                      //                               result = true;
+                      //                               UserData.instance.documentLikeList.add(snapshot.data!.docs[index].id);
+                      //                               if (mounted) {setState(() {});}
+                      //                               await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                      //                                 .update({'user_likes': FieldValue.arrayUnion([snapshot.data!.docs[index].id])});
+                      //                               await FirebaseFirestore.instance.collection('users').doc(snapshot.data!.docs[index]['post_uid'])
+                      //                                 .update({'user_like_count': FieldValue.increment(1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_count': FieldValue.increment(1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_liker': FieldValue.arrayUnion([snapshot.data!.docs[index]['post_uid']])});
+                      //                             }
+                      //                           },
+                      //                         ),
+                      //                       ),
+                      //                     ),
+                      //                   )
+                      //                 ],
+                      //               ),
+                      //             );
+                      //           },
+                      //         );
+                      //       } else {
+                      //         return Container();
+                      //       }
+                      //     },
+                      //   ),
+                      // ),
+                      // Container(
+                      //   margin: EdgeInsets.only(top: 12, right: 12, left: 12),
+                      //   child: StreamBuilder(
+                      //     stream: FirebaseFirestore.instance
+                      //       .collection('posts')
+                      //       .where('post_tags', arrayContains: 'ロック')
+                      //       .orderBy("post_count", descending: true)
+                      //       .snapshots(),
+                      //     builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                      //       if (snapshot.hasData) {
+                      //         return StaggeredGridView.countBuilder(
+                      //           crossAxisCount: 2,
+                      //           crossAxisSpacing: 10,
+                      //           mainAxisSpacing: 12,
+                      //           itemCount: snapshot.data!.docs.length,
+                      //           staggeredTileBuilder: (index) => StaggeredTile.fit(1),
+                      //           itemBuilder: (context, index) {
+                      //             return Container(
+                      //               child: Stack(
+                      //                 alignment: Alignment.bottomLeft,
+                      //                 children: [
+                      //                   GestureDetector(
+                      //                     child: Container(
+                      //                       decoration: BoxDecoration(
+                      //                         color: Colors.transparent,
+                      //                         borderRadius: BorderRadius.all(
+                      //                           Radius.circular(10),
+                      //                         )
+                      //                       ),
+                      //                       child: ClipRRect(
+                      //                         borderRadius: BorderRadius.circular(10.0),
+                      //                         child: snapshot.data!.docs[index]["post_image_500"] == null ? Image.network("") : Image.network(
+                      //                           snapshot.data!.docs[index]["post_image_500"],
+                      //                         ),
+                      //                       ),
+                      //                     ),
+                      //                     onTap: () async {
+                      //                       if (snapshot.data!.docs[index]["post_image_500"].isNotEmpty) {
+                      //                         await Navigator.push(
+                      //                           context,
+                      //                           MaterialPageRoute(builder: (context) => Item(snapshot.data!.docs[index].id)),
+                      //                         );
+                      //                         like();
+                      //                       }
+                      //                     },
+                      //                   ),
+                      //                   Align(
+                      //                     alignment: Alignment.bottomLeft,
+                      //                     child: GestureDetector(
+                      //                       child: Container(
+                      //                         margin: EdgeInsets.only(left: 10, bottom: 9),
+                      //                         width: 30.w,
+                      //                         child: Text(
+                      //                           snapshot.data!.docs[index]["post_instagram"],
+                      //                           style: TextStyle(
+                      //                             color: Colors.white,
+                      //                             fontWeight: FontWeight.bold,
+                      //                             fontSize: 11.sp,
+                      //                           ),
+                      //                           overflow: TextOverflow.ellipsis,
+                      //                           maxLines: 1,
+                      //                         ),
+                      //                       ),
+                      //                       onTap: () async {
+                      //                         if (snapshot.data!.docs[index]["post_uid"].isNotEmpty) {
+                      //                           await Navigator.push(
+                      //                             context,
+                      //                             MaterialPageRoute(builder: (context) => ProfileMain(snapshot.data!.docs[index]["post_uid"])),
+                      //                           );
+                      //                           like();
+                      //                         }
+                      //                       },
+                      //                     ),
+                      //                   ),
+                      //                   Align(
+                      //                     alignment: Alignment.bottomRight,
+                      //                     child: GestureDetector(
+                      //                       child: Container(
+                      //                         width: 40,
+                      //                         height: 35,
+                      //                         child: LikeButton(
+                      //                           isLiked: UserData.instance.documentLikeList.contains(snapshot.data!.docs[index].id) ? true : false,
+                      //                           circleColor: CircleColor(start: Color(0xFFF44336), end: Color(0xFFF44336)),
+                      //                           likeBuilder: (bool isLiked) {
+                      //                             return Icon(
+                      //                               Icons.favorite,
+                      //                               size: 30,
+                      //                               color: isLiked ? Colors.red : Colors.white70,
+                      //                             );
+                      //                           },
+                      //                           onTap: (result) async {
+                      //                             HapticFeedback.heavyImpact();
+                      //                             if (result) {
+                      //                               result = false;
+                      //                               UserData.instance.documentLikeList.remove(snapshot.data!.docs[index].id);
+                      //                               if (mounted) {setState(() {});}
+                      //                               await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                      //                                 .update({'user_likes': FieldValue.arrayRemove([snapshot.data!.docs[index].id])});
+                      //                               await FirebaseFirestore.instance.collection('users').doc(snapshot.data!.docs[index]['post_uid'])
+                      //                                 .update({'user_like_count': FieldValue.increment(-1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_count': FieldValue.increment(-1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_liker': FieldValue.arrayRemove([snapshot.data!.docs[index]['post_uid']])});
+                      //                             } else {
+                      //                               result = true;
+                      //                               UserData.instance.documentLikeList.add(snapshot.data!.docs[index].id);
+                      //                               if (mounted) {setState(() {});}
+                      //                               await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                      //                                 .update({'user_likes': FieldValue.arrayUnion([snapshot.data!.docs[index].id])});
+                      //                               await FirebaseFirestore.instance.collection('users').doc(snapshot.data!.docs[index]['post_uid'])
+                      //                                 .update({'user_like_count': FieldValue.increment(1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_count': FieldValue.increment(1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_liker': FieldValue.arrayUnion([snapshot.data!.docs[index]['post_uid']])});
+                      //                             }
+                      //                           },
+                      //                         ),
+                      //                       ),
+                      //                     ),
+                      //                   )
+                      //                 ],
+                      //               ),
+                      //             );
+                      //           },
+                      //         );
+                      //       } else {
+                      //         return Container();
+                      //       }
+                      //     },
+                      //   ),
+                      // ),
+                      // Container(
+                      //   margin: EdgeInsets.only(top: 12, right: 12, left: 12),
+                      //   child: StreamBuilder(
+                      //     stream: FirebaseFirestore.instance
+                      //       .collection('posts')
+                      //       .where('post_tags', arrayContains: 'クリエイティブ')
+                      //       .orderBy("post_count", descending: true)
+                      //       .snapshots(),
+                      //     builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                      //       if (snapshot.hasData) {
+                      //         return StaggeredGridView.countBuilder(
+                      //           crossAxisCount: 2,
+                      //           crossAxisSpacing: 10,
+                      //           mainAxisSpacing: 12,
+                      //           itemCount: snapshot.data!.docs.length,
+                      //           staggeredTileBuilder: (index) => StaggeredTile.fit(1),
+                      //           itemBuilder: (context, index) {
+                      //             return Container(
+                      //               child: Stack(
+                      //                 alignment: Alignment.bottomLeft,
+                      //                 children: [
+                      //                   GestureDetector(
+                      //                     child: Container(
+                      //                       decoration: BoxDecoration(
+                      //                         color: Colors.transparent,
+                      //                         borderRadius: BorderRadius.all(
+                      //                           Radius.circular(10),
+                      //                         )
+                      //                       ),
+                      //                       child: ClipRRect(
+                      //                         borderRadius: BorderRadius.circular(10.0),
+                      //                         child: snapshot.data!.docs[index]["post_image_500"] == null ? Image.network("") : Image.network(
+                      //                           snapshot.data!.docs[index]["post_image_500"],
+                      //                         ),
+                      //                       ),
+                      //                     ),
+                      //                     onTap: () async {
+                      //                       if (snapshot.data!.docs[index]["post_image_500"].isNotEmpty) {
+                      //                         await Navigator.push(
+                      //                           context,
+                      //                           MaterialPageRoute(builder: (context) => Item(snapshot.data!.docs[index].id)),
+                      //                         );
+                      //                         like();
+                      //                       }
+                      //                     },
+                      //                   ),
+                      //                   Align(
+                      //                     alignment: Alignment.bottomLeft,
+                      //                     child: GestureDetector(
+                      //                       child: Container(
+                      //                         margin: EdgeInsets.only(left: 10, bottom: 9),
+                      //                         width: 30.w,
+                      //                         child: Text(
+                      //                           snapshot.data!.docs[index]["post_instagram"],
+                      //                           style: TextStyle(
+                      //                             color: Colors.white,
+                      //                             fontWeight: FontWeight.bold,
+                      //                             fontSize: 11.sp,
+                      //                           ),
+                      //                           overflow: TextOverflow.ellipsis,
+                      //                           maxLines: 1,
+                      //                         ),
+                      //                       ),
+                      //                       onTap: () async {
+                      //                         if (snapshot.data!.docs[index]["post_uid"].isNotEmpty) {
+                      //                           await Navigator.push(
+                      //                             context,
+                      //                             MaterialPageRoute(builder: (context) => ProfileMain(snapshot.data!.docs[index]["post_uid"])),
+                      //                           );
+                      //                           like();
+                      //                         }
+                      //                       },
+                      //                     ),
+                      //                   ),
+                      //                   Align(
+                      //                     alignment: Alignment.bottomRight,
+                      //                     child: GestureDetector(
+                      //                       child: Container(
+                      //                         width: 40,
+                      //                         height: 35,
+                      //                         child: LikeButton(
+                      //                           isLiked: UserData.instance.documentLikeList.contains(snapshot.data!.docs[index].id) ? true : false,
+                      //                           circleColor: CircleColor(start: Color(0xFFF44336), end: Color(0xFFF44336)),
+                      //                           likeBuilder: (bool isLiked) {
+                      //                             return Icon(
+                      //                               Icons.favorite,
+                      //                               size: 30,
+                      //                               color: isLiked ? Colors.red : Colors.white70,
+                      //                             );
+                      //                           },
+                      //                           onTap: (result) async {
+                      //                             HapticFeedback.heavyImpact();
+                      //                             if (result) {
+                      //                               result = false;
+                      //                               UserData.instance.documentLikeList.remove(snapshot.data!.docs[index].id);
+                      //                               if (mounted) {setState(() {});}
+                      //                               await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                      //                                 .update({'user_likes': FieldValue.arrayRemove([snapshot.data!.docs[index].id])});
+                      //                               await FirebaseFirestore.instance.collection('users').doc(snapshot.data!.docs[index]['post_uid'])
+                      //                                 .update({'user_like_count': FieldValue.increment(-1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_count': FieldValue.increment(-1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_liker': FieldValue.arrayRemove([snapshot.data!.docs[index]['post_uid']])});
+                      //                             } else {
+                      //                               result = true;
+                      //                               UserData.instance.documentLikeList.add(snapshot.data!.docs[index].id);
+                      //                               if (mounted) {setState(() {});}
+                      //                               await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                      //                                 .update({'user_likes': FieldValue.arrayUnion([snapshot.data!.docs[index].id])});
+                      //                               await FirebaseFirestore.instance.collection('users').doc(snapshot.data!.docs[index]['post_uid'])
+                      //                                 .update({'user_like_count': FieldValue.increment(1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_count': FieldValue.increment(1)});
+                      //                               await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+                      //                                 .update({'post_liker': FieldValue.arrayUnion([snapshot.data!.docs[index]['post_uid']])});
+                      //                             }
+                      //                           },
+                      //                         ),
+                      //                       ),
+                      //                     ),
+                      //                   )
+                      //                 ],
+                      //               ),
+                      //             );
+                      //           },
+                      //         );
+                      //       } else {
+                      //         return Container();
+                      //       }
+                      //     },
+                      //   ),
+                      // ),
                     ]
                   ),
                 ),
@@ -1640,656 +2084,6 @@ class _PhotoMainState extends State<PhotoMain> {
       },
     );
   }
-
-  // @override
-  // Widget build(BuildContext context) {
-  //   return Navigator(
-  //     key: navigatorKey,
-  //     onGenerateRoute: (settings) {
-  //       return MaterialPageRoute<void>(
-  //         settings: settings,
-  //         builder: (context) {
-  //           return Scaffold(
-  //             appBar: AppBar(
-  //               automaticallyImplyLeading: false,
-  //               title: Stack(
-  //                 alignment: Alignment.center,
-  //                 children: <Widget>[
-  //                   Align(
-  //                     alignment: Alignment.center,
-  //                     child: Text(
-  //                       "ホーム",
-  //                       textAlign: TextAlign.center,
-  //                       style: TextStyle(
-  //                         color: Colors.black87,
-  //                         fontWeight: FontWeight.bold,
-  //                         fontSize: 14,
-  //                       ),
-  //                     ),
-  //                   ),
-  //                   Align(
-  //                     alignment: Alignment.centerRight,
-  //                     child: IconButton(
-  //                       icon: Icon(
-  //                         Icons.add_box_outlined,
-  //                         color: Colors.black87,
-  //                       ),
-  //                       onPressed: () async {
-  //                         await Navigator.push(
-  //                           context,
-  //                           // MaterialPageRoute(builder: (context) => OtherMainPost(widget.onTap)),
-  //                           MaterialPageRoute(builder: (context) => Post()),
-  //                         );
-  //                       },
-  //                     ),
-  //                   ),
-  //                 ],
-  //               ),
-  //               backgroundColor: Colors.white,
-  //               centerTitle: false,
-  //               elevation: 0.0,
-  //             ),
-  //             body: Column(
-  //               children: <Widget>[
-  //                 Container(
-  //                   height: 35.0,
-  //                   child: ListView(
-  //                     scrollDirection: Axis.horizontal,
-  //                     children: [
-  //                       GestureDetector(
-  //                         child: Container(
-  //                           height: 10,
-  //                           width: 70,
-  //                           margin: EdgeInsets.only(left: 5, bottom: 5,),
-  //                           decoration: BoxDecoration(
-  //                             borderRadius: BorderRadius.circular(20),
-  //                             border: Border.all(
-  //                               color: btnAll ? Color(0xFFFF8D89) : Colors.black45,
-  //                               width: 1,
-  //                             ),
-  //                           ),
-  //                           child: Center(
-  //                             child: Text(
-  //                               "全選択",
-  //                               textAlign: TextAlign.center,
-  //                               style: TextStyle(
-  //                                 color: btnAll ? Color(0xFFFF8D89) : Colors.black45,
-  //                                 fontWeight: FontWeight.bold,
-  //                                 fontSize: 12,
-  //                               ),
-  //                             ),
-  //                           ),
-  //                         ),
-  //                         onTap: () {
-  //                           HapticFeedback.heavyImpact();
-  //                           btnAll = true;
-  //                           btnMen = false;
-  //                           btnLadies = false;
-  //                           btnStreet = false;
-  //                           btnClassic = false;
-  //                           btnMode = false;
-  //                           btnFeminin = false;
-  //                           btnGrunge = false;
-  //                           btnAnnui = false;
-  //                           btnRock = false;
-  //                           btnCrieitive = false;
-  //                           UserData.instance.choiceList = "all";
-  //                           snapshot.data!.docs = UserData.instance.listAll;
-  //                           if (mounted) {setState(() {});}
-  //                         },
-  //                       ),
-  //                       GestureDetector(
-  //                         child: Container(
-  //                           height: 10,
-  //                           width: 70,
-  //                           margin: EdgeInsets.only(left: 5, bottom: 5,),
-  //                           decoration: BoxDecoration(
-  //                             borderRadius: BorderRadius.circular(20),
-  //                             border: Border.all(
-  //                               color: btnMen ? Color(0xFFFF8D89) : Colors.black45,
-  //                               width: 1,
-  //                             ),
-  //                           ),
-  //                           child: Center(
-  //                             child: Text(
-  //                               "メンズ",
-  //                               textAlign: TextAlign.center,
-  //                               style: TextStyle(
-  //                                 color: btnMen ? Color(0xFFFF8D89) : Colors.black45,
-  //                                 fontWeight: FontWeight.bold,
-  //                                 fontSize: 12,
-  //                               ),
-  //                             ),
-  //                           ),
-  //                         ),
-  //                         onTap: () {
-  //                           HapticFeedback.heavyImpact();
-  //                           btnAll = false;
-  //                           btnMen = true;
-  //                           btnLadies = false;
-  //                           btnStreet = false;
-  //                           btnClassic = false;
-  //                           btnMode = false;
-  //                           btnFeminin = false;
-  //                           btnGrunge = false;
-  //                           btnAnnui = false;
-  //                           btnRock = false;
-  //                           btnCrieitive = false;
-  //                           UserData.instance.choiceList = "men";
-  //                           snapshot.data!.docs = UserData.instance.listMen;
-  //                           if (mounted) {setState(() {});}
-  //                         },
-  //                       ),
-  //                       GestureDetector(
-  //                         child: Container(
-  //                           height: 10,
-  //                           width: 80,
-  //                           margin: EdgeInsets.only(left: 5, bottom: 5,),
-  //                           decoration: BoxDecoration(
-  //                             borderRadius: BorderRadius.circular(20),
-  //                             border: Border.all(
-  //                               color: btnLadies ? Color(0xFFFF8D89) : Colors.black45,
-  //                               width: 1,
-  //                             ),
-  //                           ),
-  //                           child: Center(
-  //                             child: Text(
-  //                               "レディース",
-  //                               textAlign: TextAlign.center,
-  //                               style: TextStyle(
-  //                                 color: btnLadies ? Color(0xFFFF8D89) : Colors.black45,
-  //                                 fontWeight: FontWeight.bold,
-  //                                 fontSize: 12,
-  //                               ),
-  //                             ),
-  //                           ),
-  //                         ),
-  //                         onTap: () {
-  //                           HapticFeedback.heavyImpact();
-  //                           btnAll = false;
-  //                           btnMen = false;
-  //                           btnLadies = true;
-  //                           btnStreet = false;
-  //                           btnClassic = false;
-  //                           btnMode = false;
-  //                           btnFeminin = false;
-  //                           btnGrunge = false;
-  //                           btnAnnui = false;
-  //                           btnRock = false;
-  //                           btnCrieitive = false;
-  //                           UserData.instance.choiceList = "ladies";
-  //                           snapshot.data!.docs = UserData.instance.listLadies;
-  //                           if (mounted) {setState(() {});}
-  //                         },
-  //                       ),
-  //                       GestureDetector(
-  //                         child: Container(
-  //                           height: 10,
-  //                           width: 80,
-  //                           margin: EdgeInsets.only(left: 5, bottom: 5,),
-  //                           decoration: BoxDecoration(
-  //                             borderRadius: BorderRadius.circular(20),
-  //                             border: Border.all(
-  //                               color: btnStreet ? Color(0xFFFF8D89) : Colors.black45,
-  //                               width: 1,
-  //                             ),
-  //                           ),
-  //                           child: Center(
-  //                             child: Text(
-  //                               "ストリート",
-  //                               textAlign: TextAlign.center,
-  //                               style: TextStyle(
-  //                                 color: btnStreet ? Color(0xFFFF8D89) : Colors.black45,
-  //                                 fontWeight: FontWeight.bold,
-  //                                 fontSize: 12,
-  //                               ),
-  //                             ),
-  //                           ),
-  //                         ),
-  //                         onTap: () {
-  //                           HapticFeedback.heavyImpact();
-  //                           btnAll = false;
-  //                           btnMen = false;
-  //                           btnLadies = false;
-  //                           btnStreet = true;
-  //                           btnClassic = false;
-  //                           btnMode = false;
-  //                           btnFeminin = false;
-  //                           btnGrunge = false;
-  //                           btnAnnui = false;
-  //                           btnRock = false;
-  //                           btnCrieitive = false;
-  //                           UserData.instance.choiceList = "street";
-  //                           snapshot.data!.docs = UserData.instance.listStreet;
-  //                           if (mounted) {setState(() {});}
-  //                         },
-  //                       ),
-  //                       GestureDetector(
-  //                         child: Container(
-  //                           height: 10,
-  //                           width: 80,
-  //                           margin: EdgeInsets.only(left: 5, bottom: 5,),
-  //                           decoration: BoxDecoration(
-  //                             borderRadius: BorderRadius.circular(20),
-  //                             border: Border.all(
-  //                               color: btnClassic ? Color(0xFFFF8D89) : Colors.black45,
-  //                               width: 1,
-  //                             ),
-  //                           ),
-  //                           child: Center(
-  //                             child: Text(
-  //                               "クラシック",
-  //                               textAlign: TextAlign.center,
-  //                               style: TextStyle(
-  //                                 color: btnClassic ? Color(0xFFFF8D89) : Colors.black45,
-  //                                 fontWeight: FontWeight.bold,
-  //                                 fontSize: 12,
-  //                               ),
-  //                             ),
-  //                           ),
-  //                         ),
-  //                         onTap: () {
-  //                           HapticFeedback.heavyImpact();
-  //                           btnAll = false;
-  //                           btnMen = false;
-  //                           btnLadies = false;
-  //                           btnStreet = false;
-  //                           btnClassic = true;
-  //                           btnMode = false;
-  //                           btnFeminin = false;
-  //                           btnGrunge = false;
-  //                           btnAnnui = false;
-  //                           btnRock = false;
-  //                           btnCrieitive = false;
-  //                           UserData.instance.choiceList = "classic";
-  //                           snapshot.data!.docs = UserData.instance.listClassic;
-  //                           if (mounted) {setState(() {});}
-  //                         },
-  //                       ),
-  //                       GestureDetector(
-  //                         child: Container(
-  //                           height: 10,
-  //                           width: 70,
-  //                           margin: EdgeInsets.only(left: 5, bottom: 5,),
-  //                           decoration: BoxDecoration(
-  //                             borderRadius: BorderRadius.circular(20),
-  //                             border: Border.all(
-  //                               color: btnMode ? Color(0xFFFF8D89) : Colors.black45,
-  //                               width: 1,
-  //                             ),
-  //                           ),
-  //                           child: Center(
-  //                             child: Text(
-  //                               "モード",
-  //                               textAlign: TextAlign.center,
-  //                               style: TextStyle(
-  //                                 color: btnMode ? Color(0xFFFF8D89) : Colors.black45,
-  //                                 fontWeight: FontWeight.bold,
-  //                                 fontSize: 12,
-  //                               ),
-  //                             ),
-  //                           ),
-  //                         ),
-  //                         onTap: () {
-  //                           HapticFeedback.heavyImpact();
-  //                           btnAll = false;
-  //                           btnMen = false;
-  //                           btnLadies = false;
-  //                           btnStreet = false;
-  //                           btnClassic = false;
-  //                           btnMode = true;
-  //                           btnFeminin = false;
-  //                           btnGrunge = false;
-  //                           btnAnnui = false;
-  //                           btnRock = false;
-  //                           btnCrieitive = false;
-  //                           UserData.instance.choiceList = "mode";
-  //                           snapshot.data!.docs = UserData.instance.listMode;
-  //                           if (mounted) {setState(() {});}
-  //                         },
-  //                       ),
-  //                       GestureDetector(
-  //                         child: Container(
-  //                           height: 10,
-  //                           width: 80,
-  //                           margin: EdgeInsets.only(left: 5, bottom: 5,),
-  //                           decoration: BoxDecoration(
-  //                             borderRadius: BorderRadius.circular(20),
-  //                             border: Border.all(
-  //                               color: btnFeminin ? Color(0xFFFF8D89) : Colors.black45,
-  //                               width: 1,
-  //                             ),
-  //                           ),
-  //                           child: Center(
-  //                             child: Text(
-  //                               "フェミニン",
-  //                               textAlign: TextAlign.center,
-  //                               style: TextStyle(
-  //                                 color: btnFeminin ? Color(0xFFFF8D89) : Colors.black45,
-  //                                 fontWeight: FontWeight.bold,
-  //                                 fontSize: 12,
-  //                               ),
-  //                             ),
-  //                           ),
-  //                         ),
-  //                         onTap: () {
-  //                           HapticFeedback.heavyImpact();
-  //                           btnAll = false;
-  //                           btnMen = false;
-  //                           btnLadies = false;
-  //                           btnStreet = false;
-  //                           btnClassic = false;
-  //                           btnMode = false;
-  //                           btnFeminin = true;
-  //                           btnGrunge = false;
-  //                           btnAnnui = false;
-  //                           btnRock = false;
-  //                           btnCrieitive = false;
-  //                           UserData.instance.choiceList = "feminin";
-  //                           snapshot.data!.docs = UserData.instance.listFeminin;
-  //                           if (mounted) {setState(() {});}
-  //                         },
-  //                       ),
-  //                       GestureDetector(
-  //                         child: Container(
-  //                           height: 10,
-  //                           width: 80,
-  //                           margin: EdgeInsets.only(left: 5, bottom: 5,),
-  //                           decoration: BoxDecoration(
-  //                             borderRadius: BorderRadius.circular(20),
-  //                             border: Border.all(
-  //                               color: btnGrunge ? Color(0xFFFF8D89) : Colors.black45,
-  //                               width: 1,
-  //                             ),
-  //                           ),
-  //                           child: Center(
-  //                             child: Text(
-  //                               "グランジ",
-  //                               textAlign: TextAlign.center,
-  //                               style: TextStyle(
-  //                                 color: btnGrunge ? Color(0xFFFF8D89) : Colors.black45,
-  //                                 fontWeight: FontWeight.bold,
-  //                                 fontSize: 12,
-  //                               ),
-  //                             ),
-  //                           ),
-  //                         ),
-  //                         onTap: () {
-  //                           HapticFeedback.heavyImpact();
-  //                           btnAll = false;
-  //                           btnMen = false;
-  //                           btnLadies = false;
-  //                           btnStreet = false;
-  //                           btnClassic = false;
-  //                           btnMode = false;
-  //                           btnFeminin = false;
-  //                           btnGrunge = true;
-  //                           btnAnnui = false;
-  //                           btnRock = false;
-  //                           btnCrieitive = false;
-  //                           UserData.instance.choiceList = "grunge";
-  //                           snapshot.data!.docs = UserData.instance.listGrunge;
-  //                           if (mounted) {setState(() {});}
-  //                         },
-  //                       ),
-  //                       GestureDetector(
-  //                         child: Container(
-  //                           height: 10,
-  //                           width: 80,
-  //                           margin: EdgeInsets.only(left: 5, bottom: 5,),
-  //                           decoration: BoxDecoration(
-  //                             borderRadius: BorderRadius.circular(20),
-  //                             border: Border.all(
-  //                               color: btnAnnui ? Color(0xFFFF8D89) : Colors.black45,
-  //                               width: 1,
-  //                             ),
-  //                           ),
-  //                           child: Center(
-  //                             child: Text(
-  //                               "アンニュイ",
-  //                               textAlign: TextAlign.center,
-  //                               style: TextStyle(
-  //                                 color: btnAnnui ? Color(0xFFFF8D89) : Colors.black45,
-  //                                 fontWeight: FontWeight.bold,
-  //                                 fontSize: 12,
-  //                               ),
-  //                             ),
-  //                           ),
-  //                         ),
-  //                         onTap: () {
-  //                           HapticFeedback.heavyImpact();
-  //                           btnAll = false;
-  //                           btnMen = false;
-  //                           btnLadies = false;
-  //                           btnStreet = false;
-  //                           btnClassic = false;
-  //                           btnMode = false;
-  //                           btnFeminin = false;
-  //                           btnGrunge = false;
-  //                           btnAnnui = true;
-  //                           btnRock = false;
-  //                           btnCrieitive = false;
-  //                           UserData.instance.choiceList = "annui";
-  //                           snapshot.data!.docs = UserData.instance.listAnnui;
-  //                           if (mounted) {setState(() {});}
-  //                         },
-  //                       ),
-  //                       GestureDetector(
-  //                         child: Container(
-  //                           height: 10,
-  //                           width: 70,
-  //                           margin: EdgeInsets.only(left: 5, bottom: 5,),
-  //                           decoration: BoxDecoration(
-  //                             borderRadius: BorderRadius.circular(20),
-  //                             border: Border.all(
-  //                               color: btnRock ? Color(0xFFFF8D89) : Colors.black45,
-  //                               width: 1,
-  //                             ),
-  //                           ),
-  //                           child: Center(
-  //                             child: Text(
-  //                               "ロック",
-  //                               textAlign: TextAlign.center,
-  //                               style: TextStyle(
-  //                                 color: btnRock ? Color(0xFFFF8D89) : Colors.black45,
-  //                                 fontWeight: FontWeight.bold,
-  //                                 fontSize: 12,
-  //                               ),
-  //                             ),
-  //                           ),
-  //                         ),
-  //                         onTap: () {
-  //                           HapticFeedback.heavyImpact();
-  //                           btnAll = false;
-  //                           btnMen = false;
-  //                           btnLadies = false;
-  //                           btnStreet = false;
-  //                           btnClassic = false;
-  //                           btnMode = false;
-  //                           btnFeminin = false;
-  //                           btnGrunge = false;
-  //                           btnAnnui = false;
-  //                           btnRock = true;
-  //                           btnCrieitive = false;
-  //                           UserData.instance.choiceList = "rock";
-  //                           snapshot.data!.docs = UserData.instance.listRock;
-  //                           if (mounted) {setState(() {});}
-  //                         },
-  //                       ),
-  //                       GestureDetector(
-  //                         child: Container(
-  //                           height: 10,
-  //                           width: 100,
-  //                           margin: EdgeInsets.only(left: 5, bottom: 5,),
-  //                           decoration: BoxDecoration(
-  //                             borderRadius: BorderRadius.circular(20),
-  //                             border: Border.all(
-  //                               color: btnCrieitive ? Color(0xFFFF8D89) : Colors.black45,
-  //                               width: 1,
-  //                             ),
-  //                           ),
-  //                           child: Center(
-  //                             child: Text(
-  //                               "クリエイティブ",
-  //                               textAlign: TextAlign.center,
-  //                               style: TextStyle(
-  //                                 color: btnCrieitive ? Color(0xFFFF8D89) : Colors.black45,
-  //                                 fontWeight: FontWeight.bold,
-  //                                 fontSize: 12,
-  //                               ),
-  //                             ),
-  //                           ),
-  //                         ),
-  //                         onTap: () {
-  //                           HapticFeedback.heavyImpact();
-  //                           btnAll = false;
-  //                           btnMen = false;
-  //                           btnLadies = false;
-  //                           btnStreet = false;
-  //                           btnClassic = false;
-  //                           btnMode = false;
-  //                           btnFeminin = false;
-  //                           btnGrunge = false;
-  //                           btnAnnui = false;
-  //                           btnRock = false;
-  //                           btnCrieitive = true;
-  //                           UserData.instance.choiceList = "crieitive";
-  //                           snapshot.data!.docs = UserData.instance.listCrieitive;
-  //                           if (mounted) {setState(() {});}
-  //                         },
-  //                       ),
-  //                     ]
-  //                   ),
-  //                 ),
-
-  //                 Expanded(
-  //                   child: Container(
-  //                     margin: EdgeInsets.only(top: 12, right: 12, left: 12),
-  //                     child: StaggeredGridView.countBuilder(
-  //                       crossAxisCount: 2,
-  //                       crossAxisSpacing: 10,
-  //                       mainAxisSpacing: 12,
-  //                       itemCount: snapshot.data!.docs.length,
-  //                       staggeredTileBuilder: (index) => StaggeredTile.fit(1),
-  //                       itemBuilder: (context, index) {
-  //                         return Container(
-  //                           child: Stack(
-  //                             alignment: Alignment.bottomLeft,
-  //                             children: [
-  //                               GestureDetector(
-  //                                 child: Container(
-  //                                   decoration: BoxDecoration(
-  //                                     color: Colors.transparent,
-  //                                     borderRadius: BorderRadius.all(
-  //                                       Radius.circular(10),
-  //                                     )
-  //                                   ),
-  //                                   child: ClipRRect(
-  //                                     borderRadius: BorderRadius.circular(10.0),
-  //                                     child: snapshot.data!.docs[index]["post_image_500"] == null ? Image.network("") : Image.network(
-  //                                       snapshot.data!.docs[index]["post_image_500"],
-  //                                     ),
-  //                                   ),
-  //                                 ),
-  //                                 onTap: () async {
-  //                                   if (snapshot.data!.docs[index]["post_image_500"].isNotEmpty) {
-  //                                     await Navigator.push(
-  //                                       context,
-  //                                       MaterialPageRoute(builder: (context) => Item("${snapshot.data!.docs[index].id}",)),
-  //                                     );
-  //                                     like();
-  //                                   }
-  //                                 },
-  //                               ),
-  //                               Align(
-  //                                 alignment: Alignment.bottomLeft,
-  //                                 child: GestureDetector(
-  //                                   child: Container(
-  //                                     margin: EdgeInsets.only(left: 10, bottom: 9),
-  //                                     width: 30.w,
-  //                                     child: Text(
-  //                                       "${snapshot.data!.docs[index]["post_instagram"]}",
-  //                                       style: TextStyle(
-  //                                         color: Colors.white,
-  //                                         fontWeight: FontWeight.bold,
-  //                                         fontSize: 11.sp,
-  //                                       ),
-  //                                       overflow: TextOverflow.ellipsis,
-  //                                       maxLines: 1,
-  //                                     ),
-  //                                   ),
-  //                                   onTap: () async {
-  //                                     if (snapshot.data!.docs[index]["post_uid"].isNotEmpty) {
-  //                                       await Navigator.push(
-  //                                         context,
-  //                                         MaterialPageRoute(builder: (context) => ProfileMain("${snapshot.data!.docs[index]["post_uid"]}")),
-  //                                       );
-  //                                       like();
-  //                                     }
-  //                                   },
-  //                                 ),
-  //                               ),
-  //                               Align(
-  //                                 alignment: Alignment.bottomRight,
-  //                                 child: GestureDetector(
-  //                                   child: Container(
-  //                                     width: 40,
-  //                                     height: 35,
-  //                                     child: LikeButton(
-  //                                       isLiked: UserData.instance.documentLikeList.contains("${snapshot.data!.docs[index].id}") ? true : false,
-  //                                       circleColor: CircleColor(start: Color(0xFFF44336), end: Color(0xFFF44336)),
-  //                                       likeBuilder: (bool isLiked) {
-  //                                         return Icon(
-  //                                           Icons.favorite,
-  //                                           size: 30,
-  //                                           color: isLiked ? Colors.red : Colors.white70,
-  //                                         );
-  //                                       },
-  //                                       onTap: (result) async {
-  //                                         HapticFeedback.heavyImpact();
-  //                                         if (result) {
-  //                                           result = false;
-  //                                           UserData.instance.documentLikeList.remove("${snapshot.data!.docs[index].id}");
-  //                                           if (mounted) {setState(() {});}
-  //                                           await FirebaseFunctions.instanceFor(app: Firebase.app(), region: 'us-central1').httpsCallable('likePhoto_false')
-  //                                           .call(
-  //                                             <String, String>{
-  //                                             'userUid': UserData.instance.user,
-  //                                             'postUid': snapshot.data!.docs[index]['post_uid'],
-  //                                             'postId': snapshot.data!.docs[index].id}
-  //                                           );
-  //                                         } else {
-  //                                           result = true;
-  //                                           UserData.instance.documentLikeList.add("${snapshot.data!.docs[index].id}");
-  //                                           if (mounted) {setState(() {});}
-  //                                           await FirebaseFunctions.instanceFor(app: Firebase.app(), region: 'us-central1').httpsCallable('likePhoto_true')
-  //                                           .call(
-  //                                             <String, String>{
-  //                                             'userUid': UserData.instance.user,
-  //                                             'postUid': snapshot.data!.docs[index]['post_uid'],
-  //                                             'postId': snapshot.data!.docs[index].id}
-  //                                           );
-  //                                         }
-  //                                       },
-  //                                     ),
-  //                                   ),
-  //                                 ),
-  //                               )
-  //                             ],
-  //                           ),
-  //                         );
-  //                       },
-  //                     ),
-  //                   ),
-  //                 ),
-  //               ],
-  //             ),
-  //           );
-  //         }
-  //       );
-  //     }
-  //   );
-  // }
 }
 
 class MyDelegate extends SliverPersistentHeaderDelegate{
@@ -2315,5 +2109,475 @@ class MyDelegate extends SliverPersistentHeaderDelegate{
   bool shouldRebuild(SliverPersistentHeaderDelegate oldDelegate) {
     return false;
   }
-
 }
+
+// body: SingleChildScrollView(
+//   child: Column(
+//     children: [
+//       Container(
+//         margin: EdgeInsets.only(top: 12, left: 12, right: 12, bottom: 12,),
+//         width: double.infinity,
+//         child: Text(
+//           'カテゴリー',
+//           textAlign: TextAlign.left,
+//           style: TextStyle(
+//             color: Colors.black87,
+//             fontSize: 15,
+//             fontWeight: FontWeight.bold,
+//           ),
+//         ),
+//       ),
+//       Container(
+//         height: 80,
+//         child: ListView(
+//           scrollDirection: Axis.horizontal,
+//           children: <Widget>[
+//             Container(
+//               width: 6,
+//               height: 80,
+//             ),
+//             Stack(
+//               children: [
+//                 Container(
+//                   width: 140,
+//                   height: 80,
+//                   margin: EdgeInsets.only(left: 3, right: 3,),
+//                   child: ClipRRect(
+//                     borderRadius: BorderRadius.circular(5.0),
+//                     child: Image.asset(
+//                       'assets/category1.png',
+//                       fit: BoxFit.cover,
+//                     ),
+//                   ),
+//                 ),
+//                 Container(
+//                   width: 140,
+//                   margin: EdgeInsets.only(top: 22, left: 10,),
+//                   child: Text(
+//                     'メンズ\nスタイル',
+//                     textAlign: TextAlign.left,
+//                     style: TextStyle(
+//                       color: Colors.white,
+//                       fontWeight: FontWeight.bold,
+//                       fontSize: 12,
+//                     ),
+//                   ),
+//                 ),
+//               ],
+//             ),
+//             Stack(
+//               children: [
+//                 Container(
+//                   width: 140,
+//                   height: 80,
+//                   margin: EdgeInsets.only(left: 3, right: 3,),
+//                   child: ClipRRect(
+//                     borderRadius: BorderRadius.circular(5.0),
+//                     child: Image.asset(
+//                       'assets/category2.png',
+//                       fit: BoxFit.cover,
+//                     ),
+//                   ),
+//                 ),
+//                 Container(
+//                   width: 140,
+//                   margin: EdgeInsets.only(top: 22, left: 10,),
+//                   child: Text(
+//                     'レディース\nスタイル',
+//                     textAlign: TextAlign.left,
+//                     style: TextStyle(
+//                       color: Colors.black87,
+//                       fontWeight: FontWeight.bold,
+//                       fontSize: 12,
+//                     ),
+//                   ),
+//                 ),
+//               ],
+//             ),
+//             Stack(
+//               children: [
+//                 Container(
+//                   width: 140,
+//                   height: 80,
+//                   margin: EdgeInsets.only(left: 3, right: 3,),
+//                   child: ClipRRect(
+//                     borderRadius: BorderRadius.circular(5.0),
+//                     child: Image.asset(
+//                       'assets/category3.png',
+//                       fit: BoxFit.cover,
+//                     ),
+//                   ),
+//                 ),
+//                 Container(
+//                   width: 140,
+//                   margin: EdgeInsets.only(top: 22, left: 10,),
+//                   child: Text(
+//                     'ストリート\nスタイル',
+//                     textAlign: TextAlign.left,
+//                     style: TextStyle(
+//                       color: Colors.white,
+//                       fontWeight: FontWeight.bold,
+//                       fontSize: 12,
+//                     ),
+//                   ),
+//                 ),
+//               ],
+//             ),
+//             Stack(
+//               children: [
+//                 Container(
+//                   width: 140,
+//                   height: 80,
+//                   margin: EdgeInsets.only(left: 3, right: 3,),
+//                   child: ClipRRect(
+//                     borderRadius: BorderRadius.circular(5.0),
+//                     child: Image.asset(
+//                       'assets/category4.png',
+//                       fit: BoxFit.cover,
+//                     ),
+//                   ),
+//                 ),
+//                 Container(
+//                   width: 140,
+//                   margin: EdgeInsets.only(top: 22, left: 10,),
+//                   child: Text(
+//                     'クラシック\nスタイル',
+//                     textAlign: TextAlign.left,
+//                     style: TextStyle(
+//                       color: Colors.white,
+//                       fontWeight: FontWeight.bold,
+//                       fontSize: 12,
+//                     ),
+//                   ),
+//                 ),
+//               ],
+//             ),
+//             Stack(
+//               children: [
+//                 Container(
+//                   width: 140,
+//                   height: 80,
+//                   margin: EdgeInsets.only(left: 3, right: 3,),
+//                   child: ClipRRect(
+//                     borderRadius: BorderRadius.circular(5.0),
+//                     child: Image.asset(
+//                       'assets/category5.png',
+//                       fit: BoxFit.cover,
+//                     ),
+//                   ),
+//                 ),
+//                 Container(
+//                   width: 140,
+//                   margin: EdgeInsets.only(top: 22, left: 10,),
+//                   child: Text(
+//                     'モード\nスタイル',
+//                     textAlign: TextAlign.left,
+//                     style: TextStyle(
+//                       color: Colors.black87,
+//                       fontWeight: FontWeight.bold,
+//                       fontSize: 12,
+//                     ),
+//                   ),
+//                 ),
+//               ],
+//             ),
+//             Stack(
+//               children: [
+//                 Container(
+//                   width: 140,
+//                   height: 80,
+//                   margin: EdgeInsets.only(left: 3, right: 3,),
+//                   child: ClipRRect(
+//                     borderRadius: BorderRadius.circular(5.0),
+//                     child: Image.asset(
+//                       'assets/category6.png',
+//                       fit: BoxFit.cover,
+//                     ),
+//                   ),
+//                 ),
+//                 Container(
+//                   width: 140,
+//                   margin: EdgeInsets.only(top: 22, left: 10,),
+//                   child: Text(
+//                     'フェミニン\nスタイル',
+//                     textAlign: TextAlign.left,
+//                     style: TextStyle(
+//                       color: Colors.white,
+//                       fontWeight: FontWeight.bold,
+//                       fontSize: 12,
+//                     ),
+//                   ),
+//                 ),
+//               ],
+//             ),
+//             Stack(
+//               children: [
+//                 Container(
+//                   width: 140,
+//                   height: 80,
+//                   margin: EdgeInsets.only(left: 3, right: 3,),
+//                   child: ClipRRect(
+//                     borderRadius: BorderRadius.circular(5.0),
+//                     child: Image.asset(
+//                       'assets/category7.png',
+//                       fit: BoxFit.cover,
+//                     ),
+//                   ),
+//                 ),
+//                 Container(
+//                   width: 140,
+//                   margin: EdgeInsets.only(top: 22, left: 10,),
+//                   child: Text(
+//                     'グランジ\nスタイル',
+//                     textAlign: TextAlign.left,
+//                     style: TextStyle(
+//                       color: Colors.white,
+//                       fontWeight: FontWeight.bold,
+//                       fontSize: 12,
+//                     ),
+//                   ),
+//                 ),
+//               ],
+//             ),
+//             Stack(
+//               children: [
+//                 Container(
+//                   width: 140,
+//                   height: 80,
+//                   margin: EdgeInsets.only(left: 3, right: 3,),
+//                   child: ClipRRect(
+//                     borderRadius: BorderRadius.circular(5.0),
+//                     child: Image.asset(
+//                       'assets/category8.png',
+//                       fit: BoxFit.cover,
+//                     ),
+//                   ),
+//                 ),
+//                 Container(
+//                   width: 140,
+//                   margin: EdgeInsets.only(top: 22, left: 10,),
+//                   child: Text(
+//                     'アンニュイ\nスタイル',
+//                     textAlign: TextAlign.left,
+//                     style: TextStyle(
+//                       color: Colors.white,
+//                       fontWeight: FontWeight.bold,
+//                       fontSize: 12,
+//                     ),
+//                   ),
+//                 ),
+//               ],
+//             ),
+//             Stack(
+//               children: [
+//                 Container(
+//                   width: 140,
+//                   height: 80,
+//                   margin: EdgeInsets.only(left: 3, right: 3,),
+//                   child: ClipRRect(
+//                     borderRadius: BorderRadius.circular(5.0),
+//                     child: Image.asset(
+//                       'assets/category9.png',
+//                       fit: BoxFit.cover,
+//                     ),
+//                   ),
+//                 ),
+//                 Container(
+//                   width: 140,
+//                   margin: EdgeInsets.only(top: 22, left: 10,),
+//                   child: Text(
+//                     'ロック\nスタイル',
+//                     textAlign: TextAlign.left,
+//                     style: TextStyle(
+//                       color: Colors.white,
+//                       fontWeight: FontWeight.bold,
+//                       fontSize: 12,
+//                     ),
+//                   ),
+//                 ),
+//               ],
+//             ),
+//             Stack(
+//               children: [
+//                 Container(
+//                   width: 140,
+//                   height: 80,
+//                   margin: EdgeInsets.only(left: 3, right: 3,),
+//                   child: ClipRRect(
+//                     borderRadius: BorderRadius.circular(5.0),
+//                     child: Image.asset(
+//                       'assets/category10.png',
+//                       fit: BoxFit.cover,
+//                     ),
+//                   ),
+//                 ),
+//                 Container(
+//                   width: 140,
+//                   margin: EdgeInsets.only(top: 22, left: 10,),
+//                   child: Text(
+//                     'クリエイティブ\nスタイル',
+//                     textAlign: TextAlign.left,
+//                     style: TextStyle(
+//                       color: Colors.white,
+//                       fontWeight: FontWeight.bold,
+//                       fontSize: 12,
+//                     ),
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           ],
+//         ),
+//       ), 
+//       Container(
+//         margin: EdgeInsets.only(top: 30, left: 12, right: 12, bottom: 0,),
+//         width: double.infinity,
+//         child: Text(
+//           'ランキング',
+//           textAlign: TextAlign.left,
+//           style: TextStyle(
+//             color: Colors.black87,
+//             fontSize: 15,
+//             fontWeight: FontWeight.bold,
+//           ),
+//         ),
+//       ),
+//       Container(
+//         margin: EdgeInsets.only(top: 12, right: 12, left: 12),
+//         child: StreamBuilder(
+//           stream: FirebaseFirestore.instance
+//             .collection('posts')
+//             // .orderBy("post_time", descending: true)
+//             .orderBy("post_count", descending: true)
+//             .snapshots(),
+//           builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+//             if (snapshot.hasData) {
+//               return StaggeredGridView.countBuilder(
+//                 shrinkWrap: true,
+//                 physics: NeverScrollableScrollPhysics(),
+//                 crossAxisCount: 2,
+//                 crossAxisSpacing: 10,
+//                 mainAxisSpacing: 12,
+//                 itemCount: snapshot.data!.docs.length,
+//                 staggeredTileBuilder: (index) => StaggeredTile.fit(1),
+//                 itemBuilder: (context, index) {
+//                   return Container(
+//                     child: Stack(
+//                       alignment: Alignment.bottomLeft,
+//                       children: [
+//                         GestureDetector(
+//                           child: Container(
+//                             decoration: BoxDecoration(
+//                               color: Colors.transparent,
+//                               borderRadius: BorderRadius.all(
+//                                 Radius.circular(5),
+//                               )
+//                             ),
+//                             child: ClipRRect(
+//                               borderRadius: BorderRadius.circular(10.0),
+//                               child: snapshot.data!.docs[index]["post_image_500"] == null ? Image.network("") : Image.network(
+//                                 snapshot.data!.docs[index]["post_image_500"],
+//                               ),
+//                             ),
+//                           ),
+//                           onTap: () async {
+//                             if (snapshot.data!.docs[index]["post_image_500"].isNotEmpty) {
+//                               await Navigator.push(
+//                                 context,
+//                                 MaterialPageRoute(builder: (context) => Item(snapshot.data!.docs[index].id)),
+//                               );
+//                               like();
+//                             }
+//                           },
+//                         ),
+//                         Align(
+//                           alignment: Alignment.bottomLeft,
+//                           child: GestureDetector(
+//                             child: Container(
+//                               margin: EdgeInsets.only(left: 10, bottom: 9),
+//                               width: 30.w,
+//                               child: Text(
+//                                 snapshot.data!.docs[index]["post_instagram"],
+//                                 style: TextStyle(
+//                                   color: Colors.white,
+//                                   fontWeight: FontWeight.bold,
+//                                   fontSize: 11.sp,
+//                                 ),
+//                                 overflow: TextOverflow.ellipsis,
+//                                 maxLines: 1,
+//                               ),
+//                             ),
+//                             onTap: () async {
+//                               if (snapshot.data!.docs[index]["post_uid"].isNotEmpty) {
+//                                 await Navigator.push(
+//                                   context,
+//                                   MaterialPageRoute(builder: (context) => ProfileMain(snapshot.data!.docs[index]["post_uid"])),
+//                                 );
+//                                 like();
+//                               }
+//                             },
+//                           ),
+//                         ),
+//                         Align(
+//                           alignment: Alignment.bottomRight,
+//                           child: GestureDetector(
+//                             child: Container(
+//                               width: 40,
+//                               height: 35,
+//                               child: LikeButton(
+//                                 isLiked: UserData.instance.documentLikeList.contains(snapshot.data!.docs[index].id) ? true : false,
+//                                 circleColor: CircleColor(start: Color(0xFFF44336), end: Color(0xFFF44336)),
+//                                 likeBuilder: (bool isLiked) {
+//                                   return Icon(
+//                                     Icons.favorite,
+//                                     size: 30,
+//                                     color: isLiked ? Colors.red : Colors.white70,
+//                                   );
+//                                 },
+//                                 onTap: (result) async {
+//                                   HapticFeedback.heavyImpact();
+//                                   if (result) {
+//                                     result = false;
+//                                     UserData.instance.documentLikeList.remove(snapshot.data!.docs[index].id);
+//                                     if (mounted) {setState(() {});}
+//                                     await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+//                                       .update({'user_likes': FieldValue.arrayRemove([snapshot.data!.docs[index].id])});
+//                                     await FirebaseFirestore.instance.collection('users').doc(snapshot.data!.docs[index]['post_uid'])
+//                                       .update({'user_like_count': FieldValue.increment(-1)});
+//                                     await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+//                                       .update({'post_count': FieldValue.increment(-1)});
+//                                     await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+//                                       .update({'post_liker': FieldValue.arrayRemove([snapshot.data!.docs[index]['post_uid']])});
+//                                   } else {
+//                                     result = true;
+//                                     UserData.instance.documentLikeList.add(snapshot.data!.docs[index].id);
+//                                     if (mounted) {setState(() {});}
+//                                     await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+//                                       .update({'user_likes': FieldValue.arrayUnion([snapshot.data!.docs[index].id])});
+//                                     await FirebaseFirestore.instance.collection('users').doc(snapshot.data!.docs[index]['post_uid'])
+//                                       .update({'user_like_count': FieldValue.increment(1)});
+//                                     await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+//                                       .update({'post_count': FieldValue.increment(1)});
+//                                     await FirebaseFirestore.instance.collection('posts').doc(snapshot.data!.docs[index].id)
+//                                       .update({'post_liker': FieldValue.arrayUnion([snapshot.data!.docs[index]['post_uid']])});
+//                                   }
+//                                 },
+//                               ),
+//                             ),
+//                           ),
+//                         )
+//                       ],
+//                     ),
+//                   );
+//                 },
+//               );
+//             } else {
+//               return Container();
+//             }
+//           },
+//         ),
+//       ),
+//     ],
+//   ),
+// ),
+

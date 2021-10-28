@@ -1,7 +1,6 @@
 import 'dart:io';
-// import 'dart:math';
+import 'package:app/1-home/items/item.dart';
 import 'package:app/3-account/items/accountEdit.dart';
-import 'package:app/3-account/items/accountImage.dart';
 import 'package:app/3-account/items/photoEdit.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -10,11 +9,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:linkable/linkable.dart';
+// import 'package:linkable/linkable.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:sizer/sizer.dart';
 import '../singleton.dart';
-import 'items/like.dart';
 
 final navigatorssKey = GlobalKey<NavigatorState>();
 
@@ -26,33 +24,6 @@ class AccountAccountMain extends StatefulWidget {
 
 class _AccountAccountMainState extends State<AccountAccountMain> {
 
-  List accountPhotos = [];
-  int favoriteCount = 0;
-  String instagram = '';
-  String tiktok = '';
-
-  @override
-  void initState() {
-    super.initState();
-    start();
-  }
-
-  Future<void> start() async {
-    await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user).get()
-    .then((doc) {
-      UserData.instance.account.clear();
-      UserData.instance.account.add(doc);
-      if (mounted) {setState(() {});}
-    });
-  }
-  Future<void> like() async {
-    UserData.instance.documentLikeList.clear();
-    await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user).get()
-    .then((doc) {
-      UserData.instance.documentLikeList = doc["user_likes"];
-      if (mounted) {setState(() {});}
-    });
-  }
   launchInstagram() async {
     var url = 'https://www.instagram.com/${UserData.instance.account[0]["user_instagram"]}';
     if (await canLaunch(url)) {
@@ -77,7 +48,15 @@ class _AccountAccountMainState extends State<AccountAccountMain> {
       throw 'このURLにはアクセスできません';
     }
   }
-  
+  Future<void> start() async {
+    await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user).get()
+    .then((doc) {
+      UserData.instance.account.clear();
+      UserData.instance.account.add(doc);
+      if (mounted) {setState(() {});}
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Navigator(
@@ -122,11 +101,31 @@ class _AccountAccountMainState extends State<AccountAccountMain> {
                               builder: (BuildContext context) {
                                 return CupertinoActionSheet(
                                   actions: [
+                                    // Container(
+                                    //   color: Colors.black87,
+                                    //   child: CupertinoActionSheetAction(
+                                    //     child: Text(
+                                    //       'アカウント編集 [画像]',
+                                    //       style: TextStyle(
+                                    //         color: Colors.white,
+                                    //         fontSize: 15,
+                                    //       ),
+                                    //     ),
+                                    //     onPressed: () async {
+                                    //       HapticFeedback.heavyImpact();
+                                    //       Navigator.of(context).pop();
+                                    //       await Navigator.push(
+                                    //         context,
+                                    //         MaterialPageRoute(builder: (context) => AccountImage(UserData.instance.account[0]["user_image_1080"])),
+                                    //       );
+                                    //     },
+                                    //   ),
+                                    // ),
                                     Container(
                                       color: Colors.black87,
                                       child: CupertinoActionSheetAction(
                                         child: Text(
-                                          'アカウント編集 [画像]',
+                                          'アカウント編集',
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontSize: 15,
@@ -135,52 +134,11 @@ class _AccountAccountMainState extends State<AccountAccountMain> {
                                         onPressed: () async {
                                           HapticFeedback.heavyImpact();
                                           Navigator.of(context).pop();
-                                          await Navigator.push(
-                                            context,
-                                            MaterialPageRoute(builder: (context) => AccountImage(UserData.instance.account[0]["user_image_1080"])),
-                                          );
+                                          // await Navigator.push(
+                                          //   context,
+                                          //   MaterialPageRoute(builder: (context) => AccountEdit()),
+                                          // );
                                           start();
-                                        },
-                                      ),
-                                    ),
-                                    Container(
-                                      color: Colors.black87,
-                                      child: CupertinoActionSheetAction(
-                                        child: Text(
-                                          'アカウント編集 [文章]',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 15,
-                                          ),
-                                        ),
-                                        onPressed: () async {
-                                          HapticFeedback.heavyImpact();
-                                          Navigator.of(context).pop();
-                                          await Navigator.push(
-                                            context,
-                                            MaterialPageRoute(builder: (context) => AccountEdit()),
-                                          );
-                                          start();
-                                        },
-                                      ),
-                                    ),
-                                    Container(
-                                      color: Colors.black87,
-                                      child: CupertinoActionSheetAction(
-                                        child: Text(
-                                          'いいね済み',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 15,
-                                          ),
-                                        ),
-                                        onPressed: () async {
-                                          HapticFeedback.heavyImpact();
-                                          Navigator.of(context).pop();
-                                          await Navigator.push(
-                                            context,
-                                            MaterialPageRoute(builder: (context) => Like()),
-                                          );
                                         },
                                       ),
                                     ),
@@ -253,7 +211,7 @@ class _AccountAccountMainState extends State<AccountAccountMain> {
                 elevation: 0.0,
               ),
               body: DefaultTabController(
-                length: 3,
+                length: 2,
                 child: NestedScrollView(
                   physics: NeverScrollableScrollPhysics(),
                   headerSliverBuilder: (context,isScolled){
@@ -268,9 +226,8 @@ class _AccountAccountMainState extends State<AccountAccountMain> {
                             Container(
                               child: StreamBuilder(
                                 stream: FirebaseFirestore.instance
-                                  .collection('posts')
-                                  .where('post_uid', isEqualTo: UserData.instance.user)
-                                  .orderBy("post_time", descending: true)
+                                  .collection('users')
+                                  .where('user_uid', isEqualTo: UserData.instance.user)
                                   .snapshots(),
                                 builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                                   if (snapshot.hasData) {
@@ -304,36 +261,36 @@ class _AccountAccountMainState extends State<AccountAccountMain> {
                                                   children: [
                                                     Container(
                                                       margin: EdgeInsets.only(top: 60, right: 10.w, left: 10.w, bottom: 5,),
-                                                      child: UserData.instance.account.length > 0 ? Text(
-                                                        UserData.instance.account[0]["user_name"] != "" ?
-                                                        UserData.instance.account[0]["user_name"] : "unnamed",
+                                                      child: Text(
+                                                        snapshot.data!.docs[0]["user_name"] != "" ?
+                                                        snapshot.data!.docs[0]["user_name"] : "unnamed",
                                                         textAlign: TextAlign.center,
                                                         style: TextStyle(
                                                           fontWeight: FontWeight.bold,
                                                           color: Colors.black87,
                                                           fontSize: 20,
                                                         ),
-                                                      ) : Text(""),
+                                                      ),
                                                     ),
                                                     Container(
                                                       margin: EdgeInsets.only(top: 0, right: 10.w, left: 10.w),
-                                                      child: UserData.instance.account.length > 0 ? Text(
-                                                        UserData.instance.account[0]["user_text"],
+                                                      child: Text(
+                                                        snapshot.data!.docs[0]["user_text"],
                                                         textAlign: TextAlign.center,
                                                         style: TextStyle(
                                                           fontWeight: FontWeight.bold,
                                                           color: Colors.black26,
                                                           fontSize: 12,
                                                         ),
-                                                      ) : Text(""),
+                                                      ),
                                                     ),
                                                     Container(
                                                       width: double.infinity,
                                                       margin: EdgeInsets.only(top: 15, right: 20.w, left: 20.w),
                                                       child: Row(
                                                         children: [   
-                                                          Spacer(),                                              
-                                                          UserData.instance.account[0]['user_instagram'] == '' ? Container() :
+                                                          Spacer(),
+                                                          snapshot.data!.docs[0]["user_instagram"] == '' ? Container() :
                                                           GestureDetector(
                                                             child: Container(
                                                               width: 28,
@@ -382,7 +339,7 @@ class _AccountAccountMainState extends State<AccountAccountMain> {
                                                               launchInstagram();
                                                             },
                                                           ),
-                                                          UserData.instance.account[0]['user_tiktok'] == '' ? Container() :
+                                                          snapshot.data!.docs[0]["user_tiktok"] == '' ? Container() :
                                                           GestureDetector(
                                                             child: Container(
                                                               width: 28,
@@ -411,40 +368,15 @@ class _AccountAccountMainState extends State<AccountAccountMain> {
                                                   ],
                                                 ),
                                               ),
-                                              UserData.instance.account.length > 0 ?
-                                              UserData.instance.account[0]["user_image_500"] == "" ?
                                               Container(
-                                                height: 110,
-                                                width: 30.w,
-                                                margin: EdgeInsets.only(top: 20, right: 35.w, left: 35.w),
-                                                padding: EdgeInsets.all(5.0),
-                                                decoration: BoxDecoration(
-                                                  color: Color(0xFFFFFFFF),
-                                                  shape: BoxShape.circle,
-                                                  border: Border.all(
-                                                    color: Colors.white,
-                                                    width: 5,
-                                                  ),
-                                                  image: DecorationImage(
-                                                    fit: BoxFit.cover,
-                                                    image: FileImage(
-                                                      File(
-                                                        UserData.instance.account[0]["user_image_path"].replaceFirst('File: \'', '').replaceFirst('\'', ''),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              )
-                                              :
-                                              Container(
-                                                height: 110,
-                                                width: 30.w,
-                                                margin: EdgeInsets.only(top: 20, right: 35.w, left: 35.w),
+                                                height: 26.w,
+                                                width: 26.w,
+                                                margin: EdgeInsets.only(top: 20, right: 37.w, left: 37.w),
                                                 child: CircleAvatar(
                                                   radius: 100,
                                                   backgroundColor: Colors.white,
                                                   backgroundImage: NetworkImage(
-                                                    UserData.instance.account[0]["user_image_500"],
+                                                    snapshot.data!.docs[0]["user_image_500"],
                                                   ),
                                                 ),
                                                 padding: EdgeInsets.all(5.0),
@@ -452,7 +384,7 @@ class _AccountAccountMainState extends State<AccountAccountMain> {
                                                   color: Color(0xFFFFFFFF),
                                                   shape: BoxShape.circle,
                                                 )
-                                              ) : Container(),
+                                              ),
                                             ]
                                           ),
                                         ],
@@ -464,193 +396,6 @@ class _AccountAccountMainState extends State<AccountAccountMain> {
                                 },
                               ),
                             ),
-
-                            // Container(
-                            //   child: Container(
-                            //     child: Stack(
-                            //       children: [
-                            //         Container(
-                            //           width: double.infinity,
-                            //           height: 140,
-                            //           color: Color(0xFFFF8D89),
-                            //         ),
-                            //         Stack(
-                            //           children: [
-                            //             Container(
-                            //               width: 80.w,
-                            //               margin: EdgeInsets.only(top: 80, right: 10.w, left: 10.w),
-                            //               padding: EdgeInsets.only(bottom: 20,),
-                            //               decoration: BoxDecoration(
-                            //                 borderRadius: BorderRadius.circular(10),
-                            //                 color: Colors.white,
-                            //                 boxShadow: [
-                            //                   BoxShadow(
-                            //                     color: Colors.black12,
-                            //                     blurRadius: 20.0,
-                            //                     spreadRadius: 1.0,
-                            //                     offset: Offset(0, 0)
-                            //                   ),
-                            //                 ],
-                            //               ),
-                            //               child: Column(
-                            //                 children: [
-                            //                   Container(
-                            //                     margin: EdgeInsets.only(top: 60, right: 10.w, left: 10.w, bottom: 5,),
-                            //                     child: UserData.instance.account.length > 0 ? Text(
-                            //                       UserData.instance.account[0]["user_name"] != "" ?
-                            //                       UserData.instance.account[0]["user_name"] : "unnamed",
-                            //                       textAlign: TextAlign.center,
-                            //                       style: TextStyle(
-                            //                         fontWeight: FontWeight.bold,
-                            //                         color: Colors.black87,
-                            //                         fontSize: 20,
-                            //                       ),
-                            //                     ) : Text(""),
-                            //                   ),
-                            //                   Container(
-                            //                     margin: EdgeInsets.only(top: 0, right: 10.w, left: 10.w),
-                            //                     child: UserData.instance.account.length > 0 ? Text(
-                            //                       UserData.instance.account[0]["user_text"],
-                            //                       textAlign: TextAlign.center,
-                            //                       style: TextStyle(
-                            //                         fontWeight: FontWeight.bold,
-                            //                         color: Colors.black26,
-                            //                         fontSize: 12,
-                            //                       ),
-                            //                     ) : Text(""),
-                            //                   ),
-                            //                   Container(
-                            //                     width: double.infinity,
-                            //                     margin: EdgeInsets.only(top: 15, right: 20.w, left: 20.w),
-                            //                     child: Row(
-                            //                       children: [   
-                            //                         Spacer(),                                              
-                            //                         UserData.instance.account[0]['user_instagram'] == '' ? Container() :
-                            //                         GestureDetector(
-                            //                           child: Container(
-                            //                             width: 28,
-                            //                             height: 28,
-                            //                             margin: EdgeInsets.only(right: 8, left: 8,),
-                            //                             decoration: BoxDecoration(
-                            //                               borderRadius: BorderRadius.circular(5),
-                            //                               gradient: LinearGradient(
-                            //                                 begin: Alignment.topRight,
-                            //                                 end: Alignment.bottomLeft,
-                            //                                 stops: [
-                            //                                   0.1,
-                            //                                   0.2,
-                            //                                   0.3,
-                            //                                   0.4,
-                            //                                   0.5,
-                            //                                   0.6,
-                            //                                   0.7,
-                            //                                   0.8,
-                            //                                   0.9,
-                            //                                   1.0,
-                            //                                 ],
-                            //                                 colors: [
-                            //                                   Color(0xFF405DE6),
-                            //                                   Color(0xFF5851DB),
-                            //                                   Color(0xFF833AB4),
-                            //                                   Color(0xFFC13584),
-                            //                                   Color(0xFFE1306C),
-                            //                                   Color(0xFFFD1D1D),
-                            //                                   Color(0xFFF56040),
-                            //                                   Color(0xFFF77737),
-                            //                                   Color(0xFFFCAF45),
-                            //                                   Color(0xFFFFDC80),
-                            //                                 ],
-                            //                               ),
-                            //                             ),
-                            //                             child: Center(
-                            //                               child: FaIcon(
-                            //                                 FontAwesomeIcons.instagram,
-                            //                                 color: Colors.white,
-                            //                                 size: 25,
-                            //                               ),
-                            //                             ),
-                            //                           ),
-                            //                           onTap: () {
-                            //                             launchInstagram();
-                            //                           },
-                            //                         ),
-                            //                         UserData.instance.account[0]['user_tiktok'] == '' ? Container() :
-                            //                         GestureDetector(
-                            //                           child: Container(
-                            //                             width: 28,
-                            //                             height: 28,
-                            //                             margin: EdgeInsets.only(right: 8, left: 8,),
-                            //                             decoration: BoxDecoration(
-                            //                               color: Colors.black87,
-                            //                               borderRadius: BorderRadius.circular(7),
-                            //                             ),
-                            //                             child: Center(
-                            //                               child: FaIcon(
-                            //                                 FontAwesomeIcons.tiktok,
-                            //                                 color: Colors.white,
-                            //                                 size: 20,
-                            //                               ),
-                            //                             ),
-                            //                           ),
-                            //                           onTap: () {
-                            //                             launchTiktok();
-                            //                           },
-                            //                         ),
-                            //                         Spacer(),
-                            //                       ],
-                            //                     ),
-                            //                   ),
-                            //                 ],
-                            //               ),
-                            //             ),
-                            //             UserData.instance.account.length > 0 ?
-                            //             UserData.instance.account[0]["user_image_500"] == "" ?
-                            //             Container(
-                            //               height: 110,
-                            //               width: 30.w,
-                            //               margin: EdgeInsets.only(top: 20, right: 35.w, left: 35.w),
-                            //               padding: EdgeInsets.all(5.0),
-                            //               decoration: BoxDecoration(
-                            //                 color: Color(0xFFFFFFFF),
-                            //                 shape: BoxShape.circle,
-                            //                 border: Border.all(
-                            //                   color: Colors.white,
-                            //                   width: 5,
-                            //                 ),
-                            //                 image: DecorationImage(
-                            //                   fit: BoxFit.cover,
-                            //                   image: FileImage(
-                            //                     File(
-                            //                       UserData.instance.account[0]["user_image_path"].replaceFirst('File: \'', '').replaceFirst('\'', ''),
-                            //                     ),
-                            //                   ),
-                            //                 ),
-                            //               ),
-                            //             )
-                            //             :
-                            //             Container(
-                            //               height: 110,
-                            //               width: 30.w,
-                            //               margin: EdgeInsets.only(top: 20, right: 35.w, left: 35.w),
-                            //               child: CircleAvatar(
-                            //                 radius: 100,
-                            //                 backgroundColor: Colors.white,
-                            //                 backgroundImage: NetworkImage(
-                            //                   UserData.instance.account[0]["user_image_500"],
-                            //                 ),
-                            //               ),
-                            //               padding: EdgeInsets.all(5.0),
-                            //               decoration: BoxDecoration(
-                            //                 color: Color(0xFFFFFFFF),
-                            //                 shape: BoxShape.circle,
-                            //               )
-                            //             ) : Container(),
-                            //           ]
-                            //         ),
-                            //       ],
-                            //     ),
-                            //   ),
-                            // ),
                           ],
                         ),
                       ),
@@ -664,12 +409,12 @@ class _AccountAccountMainState extends State<AccountAccountMain> {
                                   child: Text("作品撮り"),
                                 ),
                               ),
-                              Tab(
-                                child: Align(
-                                  alignment: Alignment.center,
-                                  child: Text("ツイート"),
-                                ),
-                              ),
+                              // Tab(
+                              //   child: Align(
+                              //     alignment: Alignment.center,
+                              //     child: Text("コンテスト"),
+                              //   ),
+                              // ),
                               Tab(
                                 child: Align(
                                   alignment: Alignment.center,
@@ -713,25 +458,25 @@ class _AccountAccountMainState extends State<AccountAccountMain> {
                                       children: <Widget>[
                                         AspectRatio(
                                           aspectRatio: 11.0 / 11.0,
-                                          child: document["post_image_500"] == "" ?
-                                          Container(
-                                            decoration: BoxDecoration(
-                                              image: DecorationImage(
-                                                fit: BoxFit.cover,
-                                                image: FileImage(
-                                                  File(
-                                                    document["post_image_path"].replaceFirst('File: \'', '').replaceFirst('\'', ''),
-                                                  ),
-                                                ),
-                                              ), 
-                                            ),
-                                          )
-                                          :
-                                          ClipRRect(
+                                          child: ClipRRect(
                                             borderRadius: BorderRadius.circular(5.0),
                                             child: Image.network(
                                               document["post_image_500"],
                                               fit: BoxFit.cover,
+                                              errorBuilder: (c, o, s) {
+                                                return Container(
+                                                  decoration: BoxDecoration(
+                                                    image: DecorationImage(
+                                                      fit: BoxFit.cover,
+                                                      image: FileImage(
+                                                        File(
+                                                          document["post_image_path"],
+                                                        ),
+                                                      ),
+                                                    ), 
+                                                  ),
+                                                );
+                                              },
                                             ),
                                           ),
                                         ),
@@ -765,6 +510,7 @@ class _AccountAccountMainState extends State<AccountAccountMain> {
                                                         ),
                                                         onPressed: () async {
                                                           HapticFeedback.heavyImpact();
+                                                          Navigator.of(context).pop();
                                                           await FirebaseStorage.instance.ref("image/resize_images")
                                                             .child('${document["post_image_name"]}_500x500').delete();
                                                           await FirebaseStorage.instance.ref("image/resize_images")
@@ -790,14 +536,16 @@ class _AccountAccountMainState extends State<AccountAccountMain> {
                                                         child: Text(
                                                           '編集',
                                                           style: TextStyle(
-                                                            color: Colors.red,
+                                                            color: Colors.white,
                                                             fontSize: 15,
-                                                            fontWeight: FontWeight.bold,
+                                                            // fontWeight: FontWeight.bold,
                                                           ),
                                                         ),
                                                         onPressed: () async {
+                                                          Navigator.of(context).pop();
                                                           await Navigator.push(
-                                                            context,MaterialPageRoute(builder: (context) => PhotoEdit(document.id)),
+                                                            context,MaterialPageRoute(builder: (context) => 
+                                                            PhotoEdit(document.id, document['post_image_500'], document['post_tags'],)),
                                                           );
                                                         },
                                                       ),
@@ -832,138 +580,142 @@ class _AccountAccountMainState extends State<AccountAccountMain> {
                           },
                         ),
                       ),
-                      Container(
-                        margin: EdgeInsets.only(top: 20),
-                        child: StreamBuilder(
-                          stream: FirebaseFirestore.instance
-                            .collection('tweets')
-                            .orderBy("tweet_time", descending: true)
-                            .snapshots(),
-                          builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                            if (snapshot.hasData) {
-                              return Container(
-                                child: ListView.builder(
-                                  physics: NeverScrollableScrollPhysics(),
-                                  shrinkWrap: true,
-                                  itemCount: snapshot.data!.docs.length,
-                                  itemBuilder: (document, index) {
-                                    return Container(
-                                      margin: EdgeInsets.only(top: 5, bottom: 5, right: 10.w, left: 10.w,),
-                                      padding: EdgeInsets.only(top: 10, bottom: 10, right: 10, left: 10,),
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                          color: Colors.black12,
-                                          width: 1,
-                                        ),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: Column(
-                                        children: [
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Container(
-                                                width: 50.w,
-                                                child: Text(
-                                                  snapshot.data!.docs[index]["tweet_name"],
-                                                  textAlign: TextAlign.left,
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 15,
-                                                  ),
-                                                ),
-                                              ),
-                                              Spacer(),
-                                              GestureDetector(
-                                                child: Icon(
-                                                  Icons.more_horiz,
-                                                  color: Colors.black87,
-                                                ),
-                                                onTap: () async {
-                                                  await showCupertinoModalPopup(
-                                                    context: context,
-                                                    builder: (BuildContext context) {
-                                                      return CupertinoActionSheet(
-                                                        actions: [
-                                                          Container(
-                                                            color: Colors.black87,
-                                                            child: CupertinoActionSheetAction(
-                                                              child: Text(
-                                                                '削除',
-                                                                style: TextStyle(
-                                                                  color: Colors.red,
-                                                                  fontSize: 15,
-                                                                  fontWeight: FontWeight.bold,
-                                                                ),
-                                                              ),
-                                                              onPressed: () async {
-                                                                HapticFeedback.heavyImpact();
-                                                                Navigator.of(context).pop();
-                                                                if (snapshot.data!.docs[index]["tweet_photo"] != '') {
-                                                                  await FirebaseStorage.instance.ref("image/resize_images")
-                                                                    .child('${snapshot.data!.docs[index]["tweet_photo"]}_500x500').delete();
-                                                                  await FirebaseStorage.instance.ref("image/resize_images")
-                                                                    .child('${snapshot.data!.docs[index]["tweet_photo"]}_1080x1080').delete();
-                                                                }
-                                                                await FirebaseFirestore.instance.collection("tweets").doc(snapshot.data!.docs[index].id).delete();
-                                                              },
-                                                            ),
-                                                          ),
-                                                        ],
-                                                        cancelButton: CupertinoButton(
-                                                          color: Colors.black87,
-                                                          child: Text(
-                                                            'キャンセル',
-                                                            style: TextStyle(
-                                                              color: Colors.white,
-                                                              fontSize: 15,
-                                                            ),
-                                                          ),
-                                                          onPressed: () {
-                                                            Navigator.of(context).pop();
-                                                          }
-                                                        ),
-                                                      );
-                                                    },
-                                                  );
-                                                },
-                                              ),
-                                            ],
-                                          ),
-                                          Container(
-                                            width: 74.w,
-                                            child: Linkable(
-                                              text: snapshot.data!.docs[index]["tweet_text"],
-                                              textColor: Colors.black87,
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                              ),
-                                            ),
-                                          ),
-                                          snapshot.data!.docs[index]["tweet_photo_1080"] != '' ? Container(
-                                            width: 74.w,
-                                            height: 74.w,
-                                            margin: EdgeInsets.only(top: 5,),
-                                            child: ClipRRect(
-                                              borderRadius: BorderRadius.circular(5.0),
-                                              child: Image.network(
-                                                snapshot.data!.docs[index]["tweet_photo_1080"],
-                                                fit: BoxFit.cover,
-                                              ),
-                                            ),
-                                          ) : Container(),
-                                        ],
-                                      ),
-                                    );
-                                  }
-                                ),
-                              );
-                            } else {
-                              return Container();
-                            }
-                          },
-                        ),
-                      ),
+                      // Container(
+                      //   width: 80.w,
+                      //   margin: EdgeInsets.only(top: 20, right: 10.w, left: 10.w),
+                      //   child: StreamBuilder(
+                      //     stream: FirebaseFirestore.instance
+                      //       .collection('contests')
+                      //       .where('post_uid', isEqualTo: UserData.instance.user)
+                      //       .orderBy("post_time", descending: true)
+                      //       .snapshots(),
+                      //     builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                      //       if (snapshot.hasData) {
+                      //         return GridView.count(
+                      //           physics: BouncingScrollPhysics(
+                      //             parent: AlwaysScrollableScrollPhysics()
+                      //           ),
+                      //           crossAxisCount: 2,
+                      //           childAspectRatio: 7.0 / 7.0,
+                      //           children: snapshot.data!.docs.map((document) {
+                      //             return Container(
+                      //               margin: EdgeInsets.all(5),
+                      //               child: Stack(
+                      //                 children: <Widget>[
+                      //                   AspectRatio(
+                      //                     aspectRatio: 11.0 / 11.0,
+                      //                     child: ClipRRect(
+                      //                       borderRadius: BorderRadius.circular(5.0),
+                      //                       child: Image.network(
+                      //                         document["post_image_500"],
+                      //                         fit: BoxFit.cover,
+                      //                         errorBuilder: (c, o, s) {
+                      //                           return Container(
+                      //                             decoration: BoxDecoration(
+                      //                               image: DecorationImage(
+                      //                                 fit: BoxFit.cover,
+                      //                                 image: FileImage(
+                      //                                   File(
+                      //                                     document["post_image_path"],
+                      //                                   ),
+                      //                                 ),
+                      //                               ), 
+                      //                             ),
+                      //                           );
+                      //                         },
+                      //                       ),
+                      //                     ),
+                      //                   ),
+                      //                   GestureDetector(
+                      //                     child: Align(
+                      //                       alignment: Alignment.topRight,
+                      //                       child: Container(
+                      //                         margin: EdgeInsets.only(right: 5,),
+                      //                         child: Icon(
+                      //                           Icons.more_horiz,
+                      //                           color: Colors.black87,
+                      //                         ),
+                      //                       ),
+                      //                     ),
+                      //                     onTap: () async {
+                      //                       await showCupertinoModalPopup(
+                      //                         context: context,
+                      //                         builder: (BuildContext context) {
+                      //                           return CupertinoActionSheet(
+                      //                             actions: [
+                      //                               Container(
+                      //                                 color: Colors.black87,
+                      //                                 child: CupertinoActionSheetAction(
+                      //                                   child: Text(
+                      //                                     '削除',
+                      //                                     style: TextStyle(
+                      //                                       color: Colors.red,
+                      //                                       fontSize: 15,
+                      //                                       fontWeight: FontWeight.bold,
+                      //                                     ),
+                      //                                   ),
+                      //                                   onPressed: () async {
+                      //                                     HapticFeedback.heavyImpact();
+                      //                                     Navigator.of(context).pop();
+                      //                                     print(document.id);
+                      //                                     await FirebaseStorage.instance.ref("contests/resize_images")
+                      //                                       .child('${document["post_image_name"]}_500x500').delete();
+                      //                                     await FirebaseStorage.instance.ref("contests/resize_images")
+                      //                                       .child('${document["post_image_name"]}_1080x1080').delete();
+                      //                                     await FirebaseFirestore.instance.collection("contests").doc(document.id).delete();
+                      //                                   },
+                      //                                 ),
+                      //                               ),
+                      //                               Container(
+                      //                                 color: Colors.black87,
+                      //                                 child: CupertinoActionSheetAction(
+                      //                                   child: Text(
+                      //                                     '編集',
+                      //                                     style: TextStyle(
+                      //                                       color: Colors.white,
+                      //                                       fontSize: 15,
+                      //                                       // fontWeight: FontWeight.bold,
+                      //                                     ),
+                      //                                   ),
+                      //                                   onPressed: () async {
+                      //                                     Navigator.of(context).pop();
+                      //                                     await Navigator.push(
+                      //                                       context,MaterialPageRoute(builder: (context) => 
+                      //                                       PhotoEdit(document.id, document['post_image_500'], document['post_tags'],)),
+                      //                                     );
+                      //                                   },
+                      //                                 ),
+                      //                               ),
+                      //                             ],
+                      //                             cancelButton: CupertinoButton(
+                      //                               color: Colors.black87,
+                      //                               child: Text(
+                      //                                 'キャンセル',
+                      //                                 style: TextStyle(
+                      //                                   color: Colors.white,
+                      //                                   fontSize: 15,
+                      //                                 ),
+                      //                               ),
+                      //                               onPressed: () {
+                      //                                 Navigator.of(context).pop();
+                      //                               }
+                      //                             ),
+                      //                           );
+                      //                         },
+                      //                       );
+                      //                     },
+                      //                   ),
+                      //                 ],
+                      //               ),
+                      //             );
+                      //           }).toList(),
+                      //         );
+                      //       } else {
+                      //         return Container();
+                      //       }
+                      //     },
+                      //   ),
+                      // ),
                       Container(
                         width: 80.w,
                         margin: EdgeInsets.only(top: 20, right: 10.w, left: 10.w),
@@ -982,16 +734,24 @@ class _AccountAccountMainState extends State<AccountAccountMain> {
                                     margin: EdgeInsets.all(5),
                                     child: Stack(
                                       children: <Widget>[
-                                        AspectRatio(
-                                          aspectRatio: 11.0 / 11.0,
-                                          child: document["post_image_500"] == "" ? Container() :
-                                           ClipRRect(
-                                            borderRadius: BorderRadius.circular(5.0),
-                                            child: Image.network(
-                                              document["post_image_500"],
-                                              fit: BoxFit.cover,
+                                        GestureDetector(
+                                          child: AspectRatio(
+                                            aspectRatio: 11.0 / 11.0,
+                                            child: document["post_image_500"] == "" ? Container() :
+                                            ClipRRect(
+                                              borderRadius: BorderRadius.circular(5.0),
+                                              child: Image.network(
+                                                document["post_image_500"],
+                                                fit: BoxFit.cover,
+                                              ),
                                             ),
                                           ),
+                                          onTap: () async {
+                                            await Navigator.push(
+                                              context,
+                                              MaterialPageRoute(builder: (context) => Item(document.id)),
+                                            );
+                                          },
                                         ),
                                       ],
                                     ),
@@ -1041,3 +801,136 @@ class MyDelegate extends SliverPersistentHeaderDelegate{
   }
 
 }
+
+// Container(
+//   margin: EdgeInsets.only(top: 20),
+//   child: StreamBuilder(
+//     stream: FirebaseFirestore.instance
+//       .collection('tweets')
+//       .orderBy("tweet_time", descending: true)
+//       .snapshots(),
+//     builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+//       if (snapshot.hasData) {
+//         return Container(
+//           child: ListView.builder(
+//             physics: NeverScrollableScrollPhysics(),
+//             shrinkWrap: true,
+//             itemCount: snapshot.data!.docs.length,
+//             itemBuilder: (document, index) {
+//               return Container(
+//                 margin: EdgeInsets.only(top: 5, bottom: 5, right: 10.w, left: 10.w,),
+//                 padding: EdgeInsets.only(top: 10, bottom: 10, right: 10, left: 10,),
+//                 decoration: BoxDecoration(
+//                   border: Border.all(
+//                     color: Colors.black12,
+//                     width: 1,
+//                   ),
+//                   borderRadius: BorderRadius.circular(5),
+//                 ),
+//                 child: Column(
+//                   children: [
+//                     Row(
+//                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                       children: [
+//                         Container(
+//                           width: 50.w,
+//                           child: Text(
+//                             snapshot.data!.docs[index]["tweet_name"],
+//                             textAlign: TextAlign.left,
+//                             style: TextStyle(
+//                               fontWeight: FontWeight.bold,
+//                               fontSize: 15,
+//                             ),
+//                           ),
+//                         ),
+//                         Spacer(),
+//                         GestureDetector(
+//                           child: Icon(
+//                             Icons.more_horiz,
+//                             color: Colors.black87,
+//                           ),
+//                           onTap: () async {
+//                             await showCupertinoModalPopup(
+//                               context: context,
+//                               builder: (BuildContext context) {
+//                                 return CupertinoActionSheet(
+//                                   actions: [
+//                                     Container(
+//                                       color: Colors.black87,
+//                                       child: CupertinoActionSheetAction(
+//                                         child: Text(
+//                                           '削除',
+//                                           style: TextStyle(
+//                                             color: Colors.red,
+//                                             fontSize: 15,
+//                                             fontWeight: FontWeight.bold,
+//                                           ),
+//                                         ),
+//                                         onPressed: () async {
+//                                           HapticFeedback.heavyImpact();
+//                                           Navigator.of(context).pop();
+//                                           if (snapshot.data!.docs[index]["tweet_photo"] != '') {
+//                                             await FirebaseStorage.instance.ref("tweets/resize_images")
+//                                               .child('${snapshot.data!.docs[index]["tweet_photo"]}_500x500').delete();
+//                                             await FirebaseStorage.instance.ref("tweets/resize_images")
+//                                               .child('${snapshot.data!.docs[index]["tweet_photo"]}_1080x1080').delete();
+//                                           }
+//                                           await FirebaseFirestore.instance.collection("tweets").doc(snapshot.data!.docs[index].id).delete();
+//                                         },
+//                                       ),
+//                                     ),
+//                                   ],
+//                                   cancelButton: CupertinoButton(
+//                                     color: Colors.black87,
+//                                     child: Text(
+//                                       'キャンセル',
+//                                       style: TextStyle(
+//                                         color: Colors.white,
+//                                         fontSize: 15,
+//                                       ),
+//                                     ),
+//                                     onPressed: () {
+//                                       Navigator.of(context).pop();
+//                                     }
+//                                   ),
+//                                 );
+//                               },
+//                             );
+//                           },
+//                         ),
+//                       ],
+//                     ),
+//                     Container(
+//                       width: 74.w,
+//                       child: Linkable(
+//                         text: snapshot.data!.docs[index]["tweet_text"],
+//                         textColor: Colors.black87,
+//                         style: TextStyle(
+//                           fontSize: 14,
+//                         ),
+//                       ),
+//                     ),
+//                     snapshot.data!.docs[index]["tweet_photo_1080"] != '' ? Container(
+//                       width: 74.w,
+//                       height: 74.w,
+//                       margin: EdgeInsets.only(top: 5,),
+//                       child: ClipRRect(
+//                         borderRadius: BorderRadius.circular(5.0),
+//                         child: Image.network(
+//                           snapshot.data!.docs[index]["tweet_photo_1080"],
+//                           fit: BoxFit.cover,
+//                         ),
+//                       ),
+//                     ) : Container(),
+//                   ],
+//                 ),
+//               );
+//             }
+//           ),
+//         );
+//       } else {
+//         return Container();
+//       }
+//     },
+//   ),
+// ),

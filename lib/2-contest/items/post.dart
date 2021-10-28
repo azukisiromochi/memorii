@@ -59,8 +59,8 @@
 //     defaultImage = list[Random().nextInt(4)];
 //     imageUrl1080 = 'https://firebasestorage.googleapis.com/v0/b/photo-beauty-24f63.appspot.com/o/image%2Fresize_images%2F' + imageUuid + '_1080x1080?alt=media&token';
 //     imageUrl500 = 'https://firebasestorage.googleapis.com/v0/b/photo-beauty-24f63.appspot.com/o/image%2Fresize_images%2F' + imageUuid + '_500x500?alt=media&token';
-//     // contestImageUrl1080 = 'https://firebasestorage.googleapis.com/v0/b/photo-beauty-24f63.appspot.com/o/contests%2Fresize_images%2F' + imageUuid + '_1080x1080?alt=media&token';
-//     // contestImageUrl500 = 'https://firebasestorage.googleapis.com/v0/b/photo-beauty-24f63.appspot.com/o/contests%2Fresize_images%2F' + imageUuid + '_500x500?alt=media&token';
+//     contestImageUrl1080 = 'https://firebasestorage.googleapis.com/v0/b/photo-beauty-24f63.appspot.com/o/contests%2Fresize_images%2F' + imageUuid + '_1080x1080?alt=media&token';
+//     contestImageUrl500 = 'https://firebasestorage.googleapis.com/v0/b/photo-beauty-24f63.appspot.com/o/contests%2Fresize_images%2F' + imageUuid + '_500x500?alt=media&token';
 //     if (mounted) {setState(() {});}
 //   }
 //   Future<void> getImage() async {
@@ -72,39 +72,7 @@
 //     }
 //   }
 //   Future<void> postImage() async {
-//     // if (contest == 'はい'){
-//     //   await FirebaseFirestore.instance.collection('posts').doc(imageUuid)
-//     //   .set({
-//     //     'post_count': 0,
-//     //     'post_liker': [],
-//     //     'post_instagram': UserData.instance.account[0]['user_instagram'],
-//     //     'post_name': UserData.instance.account[0]['user_name'],
-//     //     'post_image_1080': imageUrl1080,
-//     //     'post_image_500': imageUrl500,
-//     //     'post_image_name': imageUuid,
-//     //     'post_image_path': imageFilePath.replaceFirst('File: \'', '').replaceFirst('\'', ''),
-//     //     'post_tags': [hashTag1,hashTag2,hashTag3.text.replaceFirst('#', ''),hashTag4.text.replaceFirst('#', ''),hashTag5.text.replaceFirst('#', ''),],
-//     //     'post_uid': UserData.instance.user,
-//     //     'post_time': DateTime.now(),
-//     //   });
-//     //   await FirebaseFirestore.instance.collection('contests').doc(imageUuid)
-//     //   .set({
-//     //     'post_count': 0,
-//     //     'post_liker': [],
-//     //     'post_instagram': UserData.instance.account[0]['user_instagram'],
-//     //     'post_name': UserData.instance.account[0]['user_name'],
-//     //     'post_image_1080': contestImageUrl1080,
-//     //     'post_image_500': contestImageUrl500,
-//     //     'post_image_name': imageUuid,
-//     //     'post_image_path': imageFilePath.replaceFirst('File: \'', '').replaceFirst('\'', ''),
-//     //     'post_tags': [hashTag1,hashTag2,hashTag3.text.replaceFirst('#', ''),hashTag4.text.replaceFirst('#', ''),hashTag5.text.replaceFirst('#', ''),],
-//     //     'post_uid': UserData.instance.user,
-//     //     'post_time': DateTime.now(),
-//     //   });
-//     //   widget.onTap();
-//     //   await FirebaseStorage.instance.ref().child("image/$imageUuid").putFile(File(imageFilePath));
-//     //   await FirebaseStorage.instance.ref().child("contests/$imageUuid").putFile(File(imageFilePath));
-//     // } else if (contest == 'いいえ') {
+//     if (contest == 'はい'){
 //       await FirebaseFirestore.instance.collection('posts').doc(imageUuid)
 //       .set({
 //         'post_count': 0,
@@ -119,9 +87,41 @@
 //         'post_uid': UserData.instance.user,
 //         'post_time': DateTime.now(),
 //       });
+//       await FirebaseFirestore.instance.collection('contests').doc(imageUuid)
+//       .set({
+//         'post_count': 0,
+//         'post_liker': [],
+//         'post_instagram': UserData.instance.account[0]['user_instagram'],
+//         'post_name': UserData.instance.account[0]['user_name'],
+//         'post_image_1080': contestImageUrl1080,
+//         'post_image_500': contestImageUrl500,
+//         'post_image_name': imageUuid,
+//         'post_image_path': imageFilePath.replaceFirst('File: \'', '').replaceFirst('\'', ''),
+//         'post_tags': [hashTag1,hashTag2,hashTag3.text.replaceFirst('#', ''),hashTag4.text.replaceFirst('#', ''),hashTag5.text.replaceFirst('#', ''),],
+//         'post_uid': UserData.instance.user,
+//         'post_time': DateTime.now(),
+//       });
 //       widget.onTap();
 //       await FirebaseStorage.instance.ref().child("image/$imageUuid").putFile(File(imageFilePath));
-//     // }
+//       await FirebaseStorage.instance.ref().child("contests/$imageUuid").putFile(File(imageFilePath));
+//     } else if (contest == 'いいえ') {
+//       await FirebaseFirestore.instance.collection('contests').doc(imageUuid)
+//       .set({
+//         'post_count': 0,
+//         'post_liker': [],
+//         'post_instagram': UserData.instance.account[0]['user_instagram'],
+//         'post_name': UserData.instance.account[0]['user_name'],
+//         'post_image_1080': contestImageUrl1080,
+//         'post_image_500': contestImageUrl500,
+//         'post_image_name': imageUuid,
+//         'post_image_path': imageFilePath.replaceFirst('File: \'', '').replaceFirst('\'', ''),
+//         'post_tags': [hashTag1,hashTag2,hashTag3.text.replaceFirst('#', ''),hashTag4.text.replaceFirst('#', ''),hashTag5.text.replaceFirst('#', ''),],
+//         'post_uid': UserData.instance.user,
+//         'post_time': DateTime.now(),
+//       });
+//       widget.onTap();
+//       await FirebaseStorage.instance.ref().child("contests/$imageUuid").putFile(File(imageFilePath));
+//     }
 //   }
 //   onHashtag1(String value) {postHashTag1 = value.length;if (mounted) {setState(() {});}}
 //   onHashtag2(String value) {postHashTag2 = value.length;if (mounted) {setState(() {});}}
@@ -299,152 +299,152 @@
 //               SizedBox(
 //                 height: 30,
 //               ),
-//               // Container(
-//               //   child: Container(
-//               //     width: 90.w,
-//               //     margin: EdgeInsets.only(right: 5.w, left: 5.w,),
-//               //     color: Colors.white,
-//               //     child: Row(
-//               //       children: [
-//               //         Container(
-//               //           width: 30,
-//               //           margin: EdgeInsets.only(right: 5, left: 5,),
-//               //         ),
-//               //         Container(
-//               //           margin: EdgeInsets.only(left: 5.w,),
-//               //           child: Text(
-//               //             "コンテストに応募しますか？",
-//               //             style: TextStyle(
-//               //               fontWeight: FontWeight.bold,
-//               //               fontSize: 13,
-//               //             ),
-//               //           ),
-//               //         ),
-//               //         Spacer(),
-//               //         contest == '' ?
-//               //         Container(
-//               //           margin: EdgeInsets.only(left: 5.w,),
-//               //           child: Text(
-//               //             "選択してください",
-//               //             style: TextStyle(
-//               //               fontWeight: FontWeight.bold,
-//               //               fontSize: 13,
-//               //               color: Color(0xFFFF8D89),
-//               //             ),
-//               //           ),
-//               //         ) : Container(),
-//               //       ],
-//               //     ),
-//               //   ),
-//               // ),
-//               // Container(
-//               //   child: Container(
-//               //     width: 90.w,
-//               //     margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w,),
-//               //     child: Row(
-//               //       children: [
-//               //         Container(
-//               //           width: 30,
-//               //           height: 30,
-//               //           margin: EdgeInsets.only(right: 5, bottom: 0, left: 5,),
-//               //           decoration: BoxDecoration(
-//               //             color: contest == '' ? Colors.red : Colors.black87,
-//               //             borderRadius: BorderRadius.circular(5),
-//               //           ),
-//               //           child: Icon(
-//               //             Icons.play_arrow,
-//               //             color: Colors.white,
-//               //             size: 20,
-//               //           ),
-//               //         ),
-//               //         GestureDetector(
-//               //           child: Container(
-//               //             margin: EdgeInsets.only(left: 5.w,),
-//               //             color: Colors.white,
-//               //             width: 70.w,
-//               //             height: 45,
-//               //             child: Row(
-//               //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//               //               children: [
-//               //                 Text(
-//               //                   contest,
-//               //                   style: TextStyle(
-//               //                     fontWeight: FontWeight.bold,
-//               //                     fontSize: 13,
-//               //                   ),
-//               //                 ),
-//               //               ],
-//               //             ),
-//               //           ),
-//               //           onTap: () async {
-//               //             await showCupertinoModalPopup(
-//               //               context: context,
-//               //               builder: (BuildContext context) {
-//               //                 return CupertinoActionSheet(
-//               //                   actions: [
-//               //                     Container(
-//               //                       color: Colors.black87,
-//               //                       child: CupertinoActionSheetAction(
-//               //                         child: Text(
-//               //                           'はい',
-//               //                           style: TextStyle(
-//               //                             color: Colors.white,
-//               //                             fontSize: 15,
-//               //                           ),
-//               //                         ),
-//               //                         onPressed: () async {
-//               //                           contest = "はい";
-//               //                           if (mounted) {setState(() {});}
-//               //                           Navigator.of(context).pop();
-//               //                         },
-//               //                       ),
-//               //                     ),
-//               //                     Container(
-//               //                       color: Colors.black87,
-//               //                       child: CupertinoActionSheetAction(
-//               //                         child: Text(
-//               //                           'いいえ',
-//               //                           style: TextStyle(
-//               //                             color: Colors.white,
-//               //                             fontSize: 15,
-//               //                           ),
-//               //                         ),
-//               //                         onPressed: () async {
-//               //                           contest = "いいえ";
-//               //                           if (mounted) {setState(() {});}
-//               //                           Navigator.of(context).pop();
-//               //                         },
-//               //                       ),
-//               //                     ),
-//               //                   ],
-//               //                   cancelButton: CupertinoButton(
-//               //                     color: Colors.black87,
-//               //                     child: Text(
-//               //                       'キャンセル',
-//               //                       style: TextStyle(
-//               //                         color: Colors.white,
-//               //                         fontSize: 15,
-//               //                       ),
-//               //                     ),
-//               //                     onPressed: () {
-//               //                       Navigator.of(context).pop();
-//               //                     }
-//               //                   ),
-//               //                 );
-//               //               },
-//               //             );
-//               //           },
-//               //         ),
-//               //       ],
-//               //     ),
-//               //   ),
-//               // ),
-//               // Container(
-//               //   width: 90.w,
-//               //   height: 1,
-//               //   margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w, bottom: 20,),
-//               //   color: Colors.black12,
-//               // ),
+//               Container(
+//                 child: Container(
+//                   width: 90.w,
+//                   margin: EdgeInsets.only(right: 5.w, left: 5.w,),
+//                   color: Colors.white,
+//                   child: Row(
+//                     children: [
+//                       Container(
+//                         width: 30,
+//                         margin: EdgeInsets.only(right: 5, left: 5,),
+//                       ),
+//                       Container(
+//                         margin: EdgeInsets.only(left: 5.w,),
+//                         child: Text(
+//                           "一般にも投稿しますか？",
+//                           style: TextStyle(
+//                             fontWeight: FontWeight.bold,
+//                             fontSize: 13,
+//                           ),
+//                         ),
+//                       ),
+//                       Spacer(),
+//                       contest == '' ?
+//                       Container(
+//                         margin: EdgeInsets.only(left: 5.w,),
+//                         child: Text(
+//                           "選択してください",
+//                           style: TextStyle(
+//                             fontWeight: FontWeight.bold,
+//                             fontSize: 13,
+//                             color: Color(0xFFFF8D89),
+//                           ),
+//                         ),
+//                       ) : Container(),
+//                     ],
+//                   ),
+//                 ),
+//               ),
+//               Container(
+//                 child: Container(
+//                   width: 90.w,
+//                   margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w,),
+//                   child: Row(
+//                     children: [
+//                       Container(
+//                         width: 30,
+//                         height: 30,
+//                         margin: EdgeInsets.only(right: 5, bottom: 0, left: 5,),
+//                         decoration: BoxDecoration(
+//                           color: contest == '' ? Colors.red : Colors.black87,
+//                           borderRadius: BorderRadius.circular(5),
+//                         ),
+//                         child: Icon(
+//                           Icons.play_arrow,
+//                           color: Colors.white,
+//                           size: 20,
+//                         ),
+//                       ),
+//                       GestureDetector(
+//                         child: Container(
+//                           margin: EdgeInsets.only(left: 5.w,),
+//                           color: Colors.white,
+//                           width: 70.w,
+//                           height: 45,
+//                           child: Row(
+//                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                             children: [
+//                               Text(
+//                                 contest,
+//                                 style: TextStyle(
+//                                   fontWeight: FontWeight.bold,
+//                                   fontSize: 13,
+//                                 ),
+//                               ),
+//                             ],
+//                           ),
+//                         ),
+//                         onTap: () async {
+//                           await showCupertinoModalPopup(
+//                             context: context,
+//                             builder: (BuildContext context) {
+//                               return CupertinoActionSheet(
+//                                 actions: [
+//                                   Container(
+//                                     color: Colors.black87,
+//                                     child: CupertinoActionSheetAction(
+//                                       child: Text(
+//                                         'はい',
+//                                         style: TextStyle(
+//                                           color: Colors.white,
+//                                           fontSize: 15,
+//                                         ),
+//                                       ),
+//                                       onPressed: () async {
+//                                         contest = "はい";
+//                                         if (mounted) {setState(() {});}
+//                                         Navigator.of(context).pop();
+//                                       },
+//                                     ),
+//                                   ),
+//                                   Container(
+//                                     color: Colors.black87,
+//                                     child: CupertinoActionSheetAction(
+//                                       child: Text(
+//                                         'いいえ',
+//                                         style: TextStyle(
+//                                           color: Colors.white,
+//                                           fontSize: 15,
+//                                         ),
+//                                       ),
+//                                       onPressed: () async {
+//                                         contest = "いいえ";
+//                                         if (mounted) {setState(() {});}
+//                                         Navigator.of(context).pop();
+//                                       },
+//                                     ),
+//                                   ),
+//                                 ],
+//                                 cancelButton: CupertinoButton(
+//                                   color: Colors.black87,
+//                                   child: Text(
+//                                     'キャンセル',
+//                                     style: TextStyle(
+//                                       color: Colors.white,
+//                                       fontSize: 15,
+//                                     ),
+//                                   ),
+//                                   onPressed: () {
+//                                     Navigator.of(context).pop();
+//                                   }
+//                                 ),
+//                               );
+//                             },
+//                           );
+//                         },
+//                       ),
+//                     ],
+//                   ),
+//                 ),
+//               ),
+//               Container(
+//                 width: 90.w,
+//                 height: 1,
+//                 margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w, bottom: 20,),
+//                 color: Colors.black12,
+//               ),
 //               Container(
 //                 child: Container(
 //                   width: 90.w,

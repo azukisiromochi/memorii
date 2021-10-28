@@ -1,12 +1,11 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:app/2-twitter/list.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:page_transition/page_transition.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import '1-home/list.dart';
-import '2-twitter/list.dart';
 import '3-account/account.dart';
 import 'package:sizer/sizer.dart';
 import 'auth/main.dart';
@@ -14,7 +13,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'singleton.dart';
 import '../../singleton.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:page_transition/page_transition.dart';
 import 'package:animated_splash_screen/animated_splash_screen.dart';
+import 'package:geocoding/geocoding.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -61,7 +62,7 @@ class _MyAppState extends State<MyApp> {
             nextScreen: UserData.instance.user == '' ? AuthMain() : Nav(),
             splashTransition: SplashTransition.fadeTransition,
             pageTransitionType: PageTransitionType.fade,
-          )
+          ),
         );
       }
     );
@@ -88,7 +89,7 @@ class _NavState extends State<Nav> {
     start();
     _widgetOptions = <Widget>[
       PhotoMain(onTap),
-      Twitter(),
+      // ContestMain(onTap),
       AccountAccountMain(),
     ];
   }
@@ -99,10 +100,20 @@ class _NavState extends State<Nav> {
       UserData.instance.account.add(doc);
       if (mounted) {setState(() {});}
     });
+    await FirebaseMessaging.instance.getToken().then((String? token) async{
+      await FirebaseFirestore.instance.collection("users").doc(UserData.instance.user).update({'user_token' : token});
+    });
+    Position _currentPosition = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    List<Placemark> placemarks = await placemarkFromCoordinates(_currentPosition.latitude, _currentPosition.longitude);
+    await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+    .update({
+      'user_address_postalCode': placemarks.first.postalCode,
+      'user_address': [placemarks.first.isoCountryCode,placemarks.first.administrativeArea,placemarks.first.locality,placemarks.first.thoroughfare,placemarks.first.subThoroughfare,],
+    });
   }
 
   void onTap() {
-    _selectedIndex = 2;
+    _selectedIndex = 1;
     navBtn1 = false;
     navBtn2 = false;
     if (mounted) {setState(() {});}
@@ -156,25 +167,26 @@ class _NavState extends State<Nav> {
                       );
                     },
                   ),
-                  IconButton(
-                    icon: Icon(
-                      Icons.article,
-                      color: navBtn2 ? Colors.black87 : Colors.black54,
-                    ),
-                    onPressed: () {
-                      if (_selectedIndex == 1){
-                        _selectedIndex = 1;
-                        navigatorsKey.currentState!.popUntil((route) => route.isFirst);
-                        if (mounted) {setState(() {});}
-                      } else {
-                        _selectedIndex = 1;
-                        if (mounted) {setState(() {});}
-                      }
-                      navBtn1 = false;
-                      navBtn2 = true;
-                      if (mounted) {setState(() {});}
-                    },
-                  ),
+                  // IconButton(
+                  //   icon: Icon(
+                  //     Icons.emoji_events,
+                  //     // Icons.article,
+                  //     color: navBtn2 ? Colors.black87 : Colors.black54,
+                  //   ),
+                  //   onPressed: () {
+                  //     if (_selectedIndex == 1){
+                  //       _selectedIndex = 1;
+                  //       navigatorsKey.currentState!.popUntil((route) => route.isFirst);
+                  //       if (mounted) {setState(() {});}
+                  //     } else {
+                  //       _selectedIndex = 1;
+                  //       if (mounted) {setState(() {});}
+                  //     }
+                  //     navBtn1 = false;
+                  //     navBtn2 = true;
+                  //     if (mounted) {setState(() {});}
+                  //   },
+                  // ),
                   GestureDetector(
                     child: UserData.instance.account.length > 0 ?
                     UserData.instance.account[0]["user_image_500"] == "" ?
@@ -222,12 +234,12 @@ class _NavState extends State<Nav> {
                       ),
                     ) : Container(),
                     onTap: () {
-                      if (_selectedIndex == 2){
-                        _selectedIndex = 2;
+                      if (_selectedIndex == 1){
+                        _selectedIndex = 1;
                         navigatorssKey.currentState!.popUntil((route) => route.isFirst);
                         if (mounted) {setState(() {});}
                       } else{
-                        _selectedIndex = 2;
+                        _selectedIndex = 1;
                         if (mounted) {setState(() {});}
                       }
                       navBtn1 = false;

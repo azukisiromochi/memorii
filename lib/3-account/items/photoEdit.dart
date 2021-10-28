@@ -1,12 +1,14 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:sizer/sizer.dart';
 
 class PhotoEdit extends StatefulWidget {
   final String name;
-  PhotoEdit(this.name);
+  final String image;
+  final List list;
+  PhotoEdit(this.name, this.image, this.list);
 
   @override
   _PhotoEditState createState() => _PhotoEditState();
@@ -14,43 +16,49 @@ class PhotoEdit extends StatefulWidget {
 
 class _PhotoEditState extends State<PhotoEdit> {
 
-  List documentList = [];
-  String searchListOne = "";
-  String searchListTwo = "";
-  List referenceId = [];
+  String hashTag1 = "";
+  String hashTag2 = "";
+  final hashTag3 = TextEditingController();
+  final hashTag4 = TextEditingController();
+  final hashTag5 = TextEditingController();
 
-  String name = "";
+  bool warningOption1 = false;
+  bool warningOption2 = false;
+  bool warningOption3 = false;
+  bool warningOption4 = false;
+  bool warningOption5 = false;
+
+  int postHashTag1 = 0;
+  int postHashTag2 = 0;
+  int postHashTag3 = 0;
+
   String postImage = "";
-  String postImageName = "";
-
-  bool btnmenColor = false;
-  bool btnladiesColor = false;
-  bool btnstreetColor = false;
-  bool btnclassicColor = false;
-  bool btnmodeColor = false;
-  bool btnfemininColor = false;
-  bool btngrungeColor = false;
-  bool btnannuiColor = false;
-  bool btnrockColor = false;
-  bool btncrieitiveColor = false;
-
-  String message = "";
 
   @override
   void initState() {
     super.initState();
-    FirebaseFirestore.instance.collection('posts').doc(widget.name).get()
-    .then((doc) {
-      postImage = doc["post_image_500"];
-      postImageName = doc["post_image_name"];
-      searchListOne = doc["post_tags"][0];
-      searchListTwo = doc["post_tags"][1];
-      if (mounted) {setState(() {});}
-    });
+    hashTag1 = widget.list[0];
+    hashTag2 = widget.list[1];
+    hashTag3.text = widget.list[2];
+    hashTag4.text = widget.list[3];
+    hashTag5.text = widget.list[4];
+    if (mounted) {setState(() {});}
   }
 
-  final userTitleInputController = new TextEditingController();
-  final userTextInputController = new TextEditingController();
+  onHashtag1(String value) {
+    postHashTag1 = value.length;
+    if (mounted) {setState(() {});}
+  }
+
+  onHashtag2(String value) {
+    postHashTag2 = value.length;
+    if (mounted) {setState(() {});}
+  }
+
+  onHashtag3(String value) {
+    postHashTag3 = value.length;
+    if (mounted) {setState(() {});}
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,8 +107,7 @@ class _PhotoEditState extends State<PhotoEdit> {
                 ),
                 onTap: () async {
                   await FirebaseFirestore.instance.collection("posts")
-                  .doc(widget.name)
-                  .update({"post_tags": [searchListOne,searchListTwo],});
+                  .doc(widget.name).update({'post_tags': [hashTag1,hashTag2,hashTag3.text.replaceFirst('#', ''),hashTag4.text.replaceFirst('#', ''),hashTag5.text.replaceFirst('#', ''),],});
                   Navigator.pop(context);
                 },
               ),
@@ -112,579 +119,691 @@ class _PhotoEditState extends State<PhotoEdit> {
         elevation: 0.0,
       ),
       body: SingleChildScrollView(
-        child: Container(
+        child: GestureDetector(
           child: Column(
             children: [
-              Container(
-                margin: EdgeInsets.only(top: 30, right: 23.w, bottom: 0, left: 23.w,),
-                height: 150,
-                width: double.infinity,
-                child: postImage == "" ? null : Image.network(
-                  postImage,
-                  fit: BoxFit.contain,
-                  ),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.black12,
-                  ),
-                ),
-              ),
-              Container(
-                margin: EdgeInsets.only(top: 20, right: 23.w, bottom: 0, left: 23.w,),
-                width: double.infinity,
-                height: 40,
-                child: ElevatedButton(
-                  child: Text(
-                    searchListOne,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    primary: Color(0xffED7470),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                  ),
-                  onPressed: () async {
-                    await showModalBottomSheet<void>(
-                      context: context,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                      ), 
-                      builder: (context) {
-                        return StatefulBuilder(
-                          builder: (BuildContext context, StateSetter setState) {
-                            return BottomSheet(
-                              onClosing: () {},
-                              shape: RoundedRectangleBorder(
-                                borderRadius:
-                                  BorderRadius.vertical(top: Radius.circular(20)),
-                              ),
-                              builder: (context) {
-                                return Container(
-                                  height:240,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      Container(
-                                        margin: EdgeInsets.only(top: 20, bottom: 0,),
-                                        child: Text(
-                                          "ジャンル選択 No.1",
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18,
-                                          ),
-                                        ),
-                                      ),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                        children: [
-                                          Container(
-                                            margin: EdgeInsets.only(top: 20,),
-                                            width: 29.w,
-                                            height: 50,
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              border: Border.all(color: Colors.black12),
-                                              borderRadius: BorderRadius.circular(5),
-                                            ),
-                                            child: TextButton(
-                                              child: Text(
-                                                "メンズ",
-                                                style: TextStyle(
-                                                  color: btnmenColor ? Color(0xffED7470) : Colors.black,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 8.sp,
-                                                ),
-                                              ),
-                                              style: TextButton.styleFrom(
-                                                primary: Colors.white,
-                                              ),
-                                              onPressed: () {
-                                                if (mounted) {setState(() {
-                                                  searchListOne = "メンズ";
-                                                  btnmenColor = true;
-                                                  btnladiesColor = false;
-                                                });}
-                                                Navigator.of(context).pop();
-                                              },
-                                            ),
-                                          ),
-                                          Container(
-                                            margin: EdgeInsets.only(top: 20,),
-                                            width: 29.w,
-                                            height: 50,
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              border: Border.all(color: Colors.black12),
-                                              borderRadius: BorderRadius.circular(5),
-                                            ),
-                                            child: TextButton(
-                                              child: Text(
-                                                "レディース",
-                                                style: TextStyle(
-                                                  color: btnladiesColor ? Color(0xffED7470) : Colors.black,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 8.sp,
-                                                ),
-                                              ),
-                                              style: TextButton.styleFrom(
-                                                primary: Colors.white,
-                                              ),
-                                              onPressed: () {
-                                                if (mounted) {setState(() {
-                                                  searchListOne = "レディース";
-                                                  btnmenColor = false;
-                                                  btnladiesColor = true;
-                                                });}
-                                                Navigator.of(context).pop();
-                                              },
-                                            ),
-                                          ),
-                                          Container(
-                                            margin: EdgeInsets.only(top: 10,),
-                                            width: 29.w,
-                                            height: 50,
-                                          ),
-                                        ],
-                                      ),                   
-                                    ],
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                        );
-                      },
-                    );
-                    if (mounted) {setState(() {});}
-                  },
-                ),
-              ),
-              Container(
-                margin: EdgeInsets.only(top: 20, right: 23.w, bottom: 0, left: 23.w,),
-                width: double.infinity,
-                height: 40,
-                child: ElevatedButton(
-                  child: Text(
-                    searchListTwo,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    primary: Color(0xffED7470),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                  ),
-                  onPressed: () async {
-                    await showModalBottomSheet<void>(
-                      context: context,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              Stack(
+                children: [
+                  Container(
+                    width: 100.w,
+                    height: 250,
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: NetworkImage(
+                          widget.image,
+                        ),
+                        fit: BoxFit.cover,
                       ),
-                      builder: (context) {
-                        return StatefulBuilder(
-                          builder: (BuildContext context, StateSetter setState) {
-                            return BottomSheet(
-                              onClosing: () {},
-                              shape: RoundedRectangleBorder(
-                                borderRadius:
-                                  BorderRadius.vertical(top: Radius.circular(20)),
+                    ),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 0, sigmaY:0),
+                      child: Container(
+                        color: Colors.white.withOpacity(0.5),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    width: 100.w,
+                    height: 250,
+                    child: Image.network(
+                      widget.image,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: 30,
+              ),
+              Container(
+                child: Container(
+                  width: 90.w,
+                  margin: EdgeInsets.only(right: 5.w, left: 5.w,),
+                  color: Colors.white,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 30,
+                        margin: EdgeInsets.only(right: 5, left: 5,),
+                      ),
+                      Container(
+                        margin: EdgeInsets.only(left: 5.w,),
+                        child: Text(
+                          "ハッシュタグ No.1",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                      Spacer(),
+                      hashTag1 == '' ?
+                      Container(
+                        margin: EdgeInsets.only(left: 5.w,),
+                        child: Text(
+                          "選択してください",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: Color(0xFFFF8D89),
+                          ),
+                        ),
+                      ) : Container(),
+                    ],
+                  ),
+                ),
+              ),
+              Container(
+                child: Container(
+                  width: 90.w,
+                  margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w,),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 30,
+                        height: 30,
+                        margin: EdgeInsets.only(right: 5, bottom: 0, left: 5,),
+                        decoration: BoxDecoration(
+                          color: hashTag1 == '' ? Colors.red : Colors.black87,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: Icon(
+                          Icons.play_arrow,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                      GestureDetector(
+                        child: Container(
+                          margin: EdgeInsets.only(left: 5.w,),
+                          color: Colors.white,
+                          width: 70.w,
+                          height: 45,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                hashTag1,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
                               ),
-                              builder: (context) {
-                                return Container(
-                                  height: 380,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      Container(
-                                        margin: EdgeInsets.only(top: 20, bottom: 0,),
-                                        child: Text(
-                                          "ジャンル選択 No.2",
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18,
-                                          ),
+                            ],
+                          ),
+                        ),
+                        onTap: () async {
+                          await showCupertinoModalPopup(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return CupertinoActionSheet(
+                                actions: [
+                                  Container(
+                                    color: Colors.black87,
+                                    child: CupertinoActionSheetAction(
+                                      child: Text(
+                                        'メンズ',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 15,
                                         ),
                                       ),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                        children: [
-                                          Container(
-                                            margin: EdgeInsets.only(top: 20,),
-                                              width: 29.w,
-                                              height: 50,
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                border: Border.all(color: Colors.black12),
-                                                borderRadius: BorderRadius.circular(5),
-                                              ),
-                                              child: TextButton(
-                                                child: Text(
-                                                  "ストリート",
-                                                  style: TextStyle(
-                                                    color: btnstreetColor ? Color(0xffED7470) : Colors.black,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 8.sp,
-                                                  ),
-                                                ),
-                                              style: TextButton.styleFrom(
-                                                primary: Colors.white,
-                                              ),
-                                              onPressed: () {
-                                                if (mounted) {setState(() {
-                                                  searchListTwo = "ストリート";
-                                                  btnstreetColor = true;
-                                                  btnclassicColor = false;
-                                                  btnmodeColor = false;
-                                                  btnfemininColor = false;
-                                                  btngrungeColor = false;
-                                                  btnannuiColor = false;
-                                                  btnrockColor = false;
-                                                  btncrieitiveColor = false;
-                                                });}
-                                                Navigator.of(context).pop();
-                                              },
-                                            ),
-                                          ),
-                                          Container(
-                                            margin: EdgeInsets.only(top: 20,),
-                                            width: 29.w,
-                                            height: 50,
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              border: Border.all(color: Colors.black12),
-                                              borderRadius: BorderRadius.circular(5),
-                                            ),
-                                            child: TextButton(
-                                              child: Text(
-                                                "クラシック",
-                                                style: TextStyle(
-                                                  color: btnclassicColor ? Color(0xffED7470) : Colors.black,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 8.sp,
-                                                ),
-                                              ),
-                                              style: TextButton.styleFrom(
-                                                primary: Colors.white,
-                                              ),
-                                              onPressed: () {
-                                                if (mounted) {setState(() {
-                                                  searchListTwo = "クラシック";
-                                                  btnstreetColor = false;
-                                                  btnclassicColor = true;
-                                                  btnmodeColor = false;
-                                                  btnfemininColor = false;
-                                                  btngrungeColor = false;
-                                                  btnannuiColor = false;
-                                                  btnrockColor = false;
-                                                  btncrieitiveColor = false;
-                                                });}
-                                                Navigator.of(context).pop();
-                                              },
-                                            ),
-                                          ),
-                                          Container(
-                                            margin: EdgeInsets.only(top: 20,),
-                                            width: 29.w,
-                                            height: 50,
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              border: Border.all(color: Colors.black12),
-                                              borderRadius: BorderRadius.circular(5),
-                                            ),
-                                            child: TextButton(
-                                              child: Text(
-                                                "モード",
-                                                style: TextStyle(
-                                                  color: btnmodeColor ? Color(0xffED7470) : Colors.black,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 8.sp,
-                                                ),
-                                              ),
-                                              style: TextButton.styleFrom(
-                                                primary: Colors.white,
-                                              ),
-                                              onPressed: () {
-                                                if (mounted) {setState(() {
-                                                  searchListTwo = "モード";
-                                                  btnstreetColor = false;
-                                                  btnclassicColor = false;
-                                                  btnmodeColor = true;
-                                                  btnfemininColor = false;
-                                                  btngrungeColor = false;
-                                                  btnannuiColor = false;
-                                                  btnrockColor = false;
-                                                  btncrieitiveColor = false;
-                                                });}
-                                                Navigator.of(context).pop();
-                                              },
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                        children: [
-                                          Container(
-                                            margin: EdgeInsets.only(top: 20,),
-                                            width: 29.w,
-                                            height: 50,
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              border: Border.all(color: Colors.black12),
-                                              borderRadius: BorderRadius.circular(5),
-                                            ),
-                                            child: TextButton(
-                                              child: Text(
-                                                "フェミニン",
-                                                style: TextStyle(
-                                                  color: btnfemininColor ? Color(0xffED7470) : Colors.black,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 8.sp,
-                                                ),
-                                              ),
-                                              style: TextButton.styleFrom(
-                                                primary: Colors.white,
-                                              ),
-                                              onPressed: () {
-                                                if (mounted) {setState(() {
-                                                  searchListTwo = "フェミニン";
-                                                  btnstreetColor = false;
-                                                  btnclassicColor = false;
-                                                  btnmodeColor = false;
-                                                  btnfemininColor = true;
-                                                  btngrungeColor = false;
-                                                  btnannuiColor = false;
-                                                  btnrockColor = false;
-                                                  btncrieitiveColor = false;
-                                                });}
-                                                Navigator.of(context).pop();
-                                              },
-                                            ),
-                                          ),
-                                          Container(
-                                            margin: EdgeInsets.only(top: 20,),
-                                            width: 29.w,
-                                            height: 50,
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              border: Border.all(color: Colors.black12),
-                                              borderRadius: BorderRadius.circular(5),
-                                            ),
-                                            child: TextButton(
-                                              child: Text(
-                                                "グランジ",
-                                                style: TextStyle(
-                                                  color: btngrungeColor ? Color(0xffED7470) : Colors.black,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 8.sp,
-                                                ),
-                                              ),
-                                              style: TextButton.styleFrom(
-                                                primary: Colors.white,
-                                              ),
-                                              onPressed: () {
-                                                if (mounted) {setState(() {
-                                                  searchListTwo = "グランジ";
-                                                  btnstreetColor = false;
-                                                  btnclassicColor = false;
-                                                  btnmodeColor = false;
-                                                  btnfemininColor = false;
-                                                  btngrungeColor = true;
-                                                  btnannuiColor = false;
-                                                  btnrockColor = false;
-                                                  btncrieitiveColor = false;
-                                                });}
-                                                Navigator.of(context).pop();
-                                              },
-                                            ),
-                                          ),
-                                          Container(
-                                            margin: EdgeInsets.only(top: 20,),
-                                            width: 29.w,
-                                            height: 50,
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              border: Border.all(color: Colors.black12),
-                                              borderRadius: BorderRadius.circular(5),
-                                            ),
-                                            child: TextButton(
-                                              child: Text(
-                                                "アンニュイ",
-                                                style: TextStyle(
-                                                  color: btnannuiColor ? Color(0xffED7470) : Colors.black,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 8.sp,
-                                                ),
-                                              ),
-                                              style: TextButton.styleFrom(
-                                                primary: Colors.white,
-                                              ),
-                                              onPressed: () {
-                                                if (mounted) {setState(() {
-                                                  searchListTwo = "アンニュイ";
-                                                  btnstreetColor = false;
-                                                  btnclassicColor = false;
-                                                  btnmodeColor = false;
-                                                  btnfemininColor = false;
-                                                  btngrungeColor = false;
-                                                  btnannuiColor = true;
-                                                  btnrockColor = false;
-                                                  btncrieitiveColor = false;
-                                                });}
-                                                Navigator.of(context).pop();
-                                              },
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                        children: [
-                                          Container(
-                                            margin: EdgeInsets.only(top: 20,),
-                                            width: 29.w,
-                                            height: 50,
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              border: Border.all(color: Colors.black12),
-                                              borderRadius: BorderRadius.circular(5),
-                                            ),
-                                            child: TextButton(
-                                              child: Text(
-                                                "ロック",
-                                                style: TextStyle(
-                                                  color: btnrockColor ? Color(0xffED7470) : Colors.black,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 8.sp,
-                                                ),
-                                              ),
-                                              style: TextButton.styleFrom(
-                                                primary: Colors.white,
-                                              ),
-                                              onPressed: () {
-                                                if (mounted) {setState(() {
-                                                  searchListTwo = "ロック";
-                                                  btnstreetColor = false;
-                                                  btnclassicColor = false;
-                                                  btnmodeColor = false;
-                                                  btnfemininColor = false;
-                                                  btngrungeColor = false;
-                                                  btnannuiColor = false;
-                                                  btnrockColor = true;
-                                                  btncrieitiveColor = false;
-                                                });}
-                                                Navigator.of(context).pop();
-                                              },
-                                            ),
-                                          ),
-                                          Container(
-                                            margin: EdgeInsets.only(top: 20,),
-                                            width: 29.w,
-                                            height: 50,
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              border: Border.all(color: Colors.black12),
-                                              borderRadius: BorderRadius.circular(5),
-                                            ),
-                                            child: TextButton(
-                                              child: Text(
-                                                "クリエイティブ",
-                                                style: TextStyle(
-                                                  color: btncrieitiveColor ? Color(0xffED7470) : Colors.black,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 8.sp,
-                                                ),
-                                              ),
-                                              style: TextButton.styleFrom(
-                                                primary: Colors.white,
-                                              ),
-                                              onPressed: () {
-                                                if (mounted) {setState(() {
-                                                  searchListTwo = "クリエイティブ";
-                                                  btnstreetColor = true;
-                                                  btnclassicColor = false;
-                                                  btnmodeColor = false;
-                                                  btnfemininColor = false;
-                                                  btngrungeColor = false;
-                                                  btnannuiColor = false;
-                                                  btnrockColor = false;
-                                                  btncrieitiveColor = false;
-                                                });}
-                                                Navigator.of(context).pop();
-                                              },
-                                            ),
-                                          ),
-                                          Container(
-                                            margin: EdgeInsets.only(top: 10,),
-                                            width: 29.w,
-                                            height: 50,
-                                          ),
-                                        ],
-                                      ),
-                                    ],
+                                      onPressed: () async {
+                                        hashTag1 = "メンズ";
+                                        if (mounted) {setState(() {});}
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
                                   ),
-                                );
-                              },
+                                  Container(
+                                    color: Colors.black87,
+                                    child: CupertinoActionSheetAction(
+                                      child: Text(
+                                        'レディース',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                      onPressed: () async {
+                                        hashTag1 = "レディース";
+                                        if (mounted) {setState(() {});}
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                  ),
+                                ],
+                                cancelButton: CupertinoButton(
+                                  color: Colors.black87,
+                                  child: Text(
+                                    'キャンセル',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  }
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Container(
+                width: 90.w,
+                height: 1,
+                margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w, bottom: 20,),
+                color: Colors.black12,
+              ),
+              Container(
+                child: Container(
+                  width: 90.w,
+                  margin: EdgeInsets.only(right: 5.w, left: 5.w,),
+                  color: Colors.white,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 30,
+                        margin: EdgeInsets.only(right: 5, left: 5,),
+                      ),
+                      Container(
+                        margin: EdgeInsets.only(left: 5.w,),
+                        child: Text(
+                          "ハッシュタグ No.2",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                      Spacer(),
+                      hashTag2 == '' ?
+                      Container(
+                        margin: EdgeInsets.only(left: 5.w,),
+                        child: Text(
+                          "選択してください",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: Color(0xFFFF8D89),
+                          ),
+                        ),
+                      ) : Container(),
+                    ],
+                  ),
+                ),
+              ),
+              Container(
+                width: 90.w,
+                margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w,),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 30,
+                      height: 30,
+                      margin: EdgeInsets.only(right: 5, bottom: 0, left: 5,),
+                      decoration: BoxDecoration(
+                        color: hashTag2 == '' ? Colors.red : Colors.black87,
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      child: Icon(
+                        Icons.play_arrow,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                    GestureDetector(
+                      child: Container(
+                        margin: EdgeInsets.only(left: 5.w,),
+                        color: Colors.white,
+                        width: 70.w,
+                        height: 45,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              hashTag2,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      onTap: () async {
+                        await showCupertinoModalPopup(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return CupertinoActionSheet(
+                              actions: [
+                                Container(
+                                  color: Colors.black87,
+                                  child: CupertinoActionSheetAction(
+                                    child: Text(
+                                      "ストリート",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    onPressed: () async {
+                                      hashTag2 = "ストリート";
+                                      if (mounted) {setState(() {});}
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ),
+                                Container(
+                                  color: Colors.black87,
+                                  child: CupertinoActionSheetAction(
+                                    child: Text(
+                                      "クラシック",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    onPressed: () async {
+                                      hashTag2 = "クラシック";
+                                      if (mounted) {setState(() {});}
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ),
+                                Container(
+                                  color: Colors.black87,
+                                  child: CupertinoActionSheetAction(
+                                    child: Text(
+                                      "モード",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    onPressed: () async {
+                                      hashTag2 = "モード";
+                                      if (mounted) {setState(() {});}
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ),
+                                Container(
+                                  color: Colors.black87,
+                                  child: CupertinoActionSheetAction(
+                                    child: Text(
+                                      "フェミニン",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    onPressed: () async {
+                                      hashTag2 = "フェミニン";
+                                      if (mounted) {setState(() {});}
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ),
+                                Container(
+                                  color: Colors.black87,
+                                  child: CupertinoActionSheetAction(
+                                    child: Text(
+                                      "グランジ",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    onPressed: () async {
+                                      hashTag2 = "グランジ";
+                                      if (mounted) {setState(() {});}
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ),
+                                Container(
+                                  color: Colors.black87,
+                                  child: CupertinoActionSheetAction(
+                                    child: Text(
+                                      "アンニュイ",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    onPressed: () async {
+                                      hashTag2 = "アンニュイ";
+                                      if (mounted) {setState(() {});}
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ),
+                                Container(
+                                  color: Colors.black87,
+                                  child: CupertinoActionSheetAction(
+                                    child: Text(
+                                      "ロック",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    onPressed: () async {
+                                      hashTag2 = "ロック";
+                                      if (mounted) {setState(() {});}
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ),
+                                Container(
+                                  color: Colors.black87,
+                                  child: CupertinoActionSheetAction(
+                                    child: Text(
+                                      "クリエイティブ",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    onPressed: () async {
+                                      hashTag2 = "クリエイティブ";
+                                      if (mounted) {setState(() {});}
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ),
+                              ],
+                              cancelButton: CupertinoButton(
+                                color: Colors.black87,
+                                child: Text(
+                                  'キャンセル',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                }
+                              ),
                             );
                           },
                         );
                       },
-                    );
-                    if (mounted) {setState(() {});}
-                  },
+                    ),
+                  ],
                 ),
               ),
               Container(
-                margin: EdgeInsets.only(top: 20, right: 23.w, bottom: 50, left: 23.w,),
-                width: double.infinity,
-                height: 40,
-                child: ElevatedButton(
-                  child: Text(
-                    '削除',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white
-                    ),
+                width: 90.w,
+                height: 1,
+                margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w, bottom: 20,),
+                color: Colors.black12,
+              ),
+              Container(
+                child: Container(
+                  width: 90.w,
+                  margin: EdgeInsets.only(right: 5.w, left: 5.w,),
+                  color: Colors.white,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 30,
+                        margin: EdgeInsets.only(right: 5, left: 5,),
+                      ),
+                      Container(
+                        margin: EdgeInsets.only(left: 5.w,),
+                        child: Text(
+                          "ハッシュタグ No.3",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                      Spacer(),
+                      Container(
+                        margin: EdgeInsets.only(left: 5.w,),
+                        child: Text(
+                          "$postHashTag1/15",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                            color: postHashTag1 == 15 ?  Colors.red : Colors.black87,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  style: ElevatedButton.styleFrom(
-                    primary: Color(0xffED7470),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                  ),
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    await FirebaseStorage.instance.ref("image/resize_images").child('${postImageName}_500x500').delete();
-                    await FirebaseStorage.instance.ref("image/resize_images").child('${postImageName}_1080x1080').delete();
-                    await FirebaseFirestore.instance.collection("posts").doc(widget.name).delete();
-                    await FirebaseFirestore.instance.collection('users').where('user_likes', arrayContains: widget.name).get()
-                    .then((QuerySnapshot querySnapshot) {
-                      querySnapshot.docs.forEach((doc) {
-                        print(doc.id);
-                        FirebaseFirestore.instance.collection('users')
-                          .doc(doc.id)
-                          .update({
-                            'user_likes': FieldValue.arrayRemove([widget.name,])
-                          });
-                      });
-                    });
-                    if (mounted) {setState(() {});}
-                  },
                 ),
+              ),
+              Container(
+                child: Container(
+                  width: 90.w,
+                  margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w,),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 30,
+                        height: 30,
+                        margin: EdgeInsets.only(right: 5, bottom: 0, left: 5,),
+                        decoration: BoxDecoration(
+                          color: warningOption3 ? Colors.red : Colors.black87,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: Icon(
+                          Icons.play_arrow,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                      Container(
+                        margin: EdgeInsets.only(left: 5.w,),
+                        width: 70.w,
+                        child: TextFormField(
+                          keyboardType: TextInputType.multiline,
+                          maxLines: 1,
+                          minLines: 1,
+                          maxLength: 15,
+                          onChanged: onHashtag1,
+                          autovalidateMode: AutovalidateMode.always,
+                          controller: hashTag3,
+                          decoration: InputDecoration(
+                            border: InputBorder.none,
+                            counterText: '',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Container(
+                width: 90.w,
+                height: 1,
+                margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w, bottom: 20,),
+                color: Colors.black12,
+              ),
+              Container(
+                child: Container(
+                  width: 90.w,
+                  margin: EdgeInsets.only(right: 5.w, left: 5.w,),
+                  color: Colors.white,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 30,
+                        margin: EdgeInsets.only(right: 5, left: 5,),
+                      ),
+                      Container(
+                        margin: EdgeInsets.only(left: 5.w,),
+                        child: Text(
+                          "ハッシュタグ No.4",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                      Spacer(),
+                      Container(
+                        margin: EdgeInsets.only(left: 5.w,),
+                        child: Text(
+                          "$postHashTag2/15",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                            color: postHashTag2 == 15 ?  Colors.red : Colors.black87,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Container(
+                child: Container(
+                  width: 90.w,
+                  margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w,),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 30,
+                        height: 30,
+                        margin: EdgeInsets.only(right: 5, bottom: 0, left: 5,),
+                        decoration: BoxDecoration(
+                          color: warningOption4 ? Colors.red : Colors.black87,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: Icon(
+                          Icons.play_arrow,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                      Container(
+                        margin: EdgeInsets.only(left: 5.w,),
+                        width: 70.w,
+                        child: TextFormField(
+                          keyboardType: TextInputType.multiline,
+                          maxLines: 1,
+                          minLines: 1,
+                          maxLength: 15,
+                          onChanged: onHashtag2,
+                          autovalidateMode: AutovalidateMode.always,
+                          controller: hashTag4,
+                          decoration: InputDecoration(
+                            border: InputBorder.none,
+                            counterText: '',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Container(
+                width: 90.w,
+                height: 1,
+                margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w, bottom: 20,),
+                color: Colors.black12,
+              ),
+              Container(
+                child: Container(
+                  width: 90.w,
+                  margin: EdgeInsets.only(right: 5.w, left: 5.w,),
+                  color: Colors.white,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 30,
+                        margin: EdgeInsets.only(right: 5, left: 5,),
+                      ),
+                      Container(
+                        margin: EdgeInsets.only(left: 5.w,),
+                        child: Text(
+                          "ハッシュタグ No.5",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                      Spacer(),
+                      Container(
+                        margin: EdgeInsets.only(left: 5.w,),
+                        child: Text(
+                          "$postHashTag3/15",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                            color: postHashTag3 == 15 ?  Colors.red : Colors.black87,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Container(
+                child: Container(
+                  width: 90.w,
+                  margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w,),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 30,
+                        height: 30,
+                        margin: EdgeInsets.only(right: 5, bottom: 0, left: 5,),
+                        decoration: BoxDecoration(
+                          color: warningOption5 ? Colors.red : Colors.black87,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: Icon(
+                          Icons.play_arrow,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                      Container(
+                        margin: EdgeInsets.only(left: 5.w,),
+                        width: 70.w,
+                        child: TextFormField(
+                          keyboardType: TextInputType.multiline,
+                          maxLines: 1,
+                          minLines: 1,
+                          maxLength: 15,
+                          onChanged: onHashtag3,
+                          autovalidateMode: AutovalidateMode.always,
+                          controller: hashTag5,
+                          decoration: InputDecoration(
+                            border: InputBorder.none,
+                            counterText: '',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Container(
+                width: 90.w,
+                height: 1,
+                margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w, bottom: 20,),
+                color: Colors.black12,
               ),
             ],
           ),
+          onTap: () {
+            FocusScope.of(context).unfocus();
+          },
         ),
       ),
     );

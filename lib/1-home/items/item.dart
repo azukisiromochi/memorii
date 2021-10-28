@@ -1,5 +1,3 @@
-import 'package:cloud_functions/cloud_functions.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -29,14 +27,15 @@ class _ItemState extends State<Item> {
   void initState() {
     super.initState();
     start();
+    like();
   }
 
   Future<void> start() async {
     await FirebaseFirestore.instance.collection('posts').doc(widget.name).get()
-    .then((doc) {
+    .then((doc) async {
       itemList.add(doc);
       if (mounted) {setState(() {});}
-      FirebaseFirestore.instance.collection('posts')
+      await FirebaseFirestore.instance.collection('posts')
       .where('post_tags', arrayContainsAny: doc["post_tags"])
       .orderBy("post_count").limit(50).get()
       .then((QuerySnapshot querySnapshot) {
@@ -47,9 +46,9 @@ class _ItemState extends State<Item> {
         });
       });
     });
-    like();
   }
   Future<void> like() async {
+    UserData.instance.documentLikeList.clear();
     await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user).get()
     .then((doc) {
       UserData.instance.documentLikeList = doc["user_likes"];
@@ -138,8 +137,6 @@ class _ItemState extends State<Item> {
                                   ),
                                 ),
                                 onPressed: () async {
-                                  HapticFeedback.heavyImpact();
-                                  Navigator.pop(context);
                                   Navigator.pop(context);
                                 },
                               ),
@@ -155,8 +152,6 @@ class _ItemState extends State<Item> {
                                   ),
                                 ),
                                 onPressed: () async {
-                                  HapticFeedback.heavyImpact();
-                                  Navigator.pop(context);
                                   Navigator.pop(context);
                                 },
                               ),
@@ -201,7 +196,8 @@ class _ItemState extends State<Item> {
                     decoration: BoxDecoration(
                       color: Colors.transparent,
                       borderRadius: BorderRadius.all(
-                        Radius.circular(10))
+                        Radius.circular(10)
+                      ),
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.all(
@@ -263,30 +259,32 @@ class _ItemState extends State<Item> {
                               result = false;
                               UserData.instance.documentLikeList.remove(itemList[0].id);
                               if (mounted) {setState(() {});}
-                              await FirebaseFunctions.instanceFor(app: Firebase.app(), region: 'us-central1').httpsCallable('likePhoto_false')
-                              .call(
-                                <String, String>{
-                                'userUid': UserData.instance.user,
-                                'postUid': itemList[0]['post_uid'],
-                                'postId': itemList[0].id,
-                              });
+                              await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                                .update({'user_likes': FieldValue.arrayRemove([itemList[0].id])});
+                              await FirebaseFirestore.instance.collection('users').doc(itemList[0]['post_uid'])
+                                .update({'user_like_count': FieldValue.increment(-1)});
+                              await FirebaseFirestore.instance.collection('posts').doc(itemList[0].id)
+                                .update({'post_count': FieldValue.increment(-1)});
+                              await FirebaseFirestore.instance.collection('posts').doc(itemList[0].id)
+                                .update({'post_liker': FieldValue.arrayRemove([itemList[0]['post_uid']])});
                             } else {
                               result = true;
                               UserData.instance.documentLikeList.add(itemList[0].id);
                               if (mounted) {setState(() {});}
-                              await FirebaseFunctions.instanceFor(app: Firebase.app(), region: 'us-central1').httpsCallable('likePhoto_true')
-                              .call(
-                                <String, String>{
-                                'userUid': UserData.instance.user,
-                                'postUid': itemList[0]['post_uid'],
-                                'postId': itemList[0].id,
-                              });
+                              await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                                .update({'user_likes': FieldValue.arrayUnion([itemList[0].id])});
+                              await FirebaseFirestore.instance.collection('users').doc(itemList[0]['post_uid'])
+                                .update({'user_like_count': FieldValue.increment(1)});
+                              await FirebaseFirestore.instance.collection('posts').doc(itemList[0].id)
+                                .update({'post_count': FieldValue.increment(1)});
+                              await FirebaseFirestore.instance.collection('posts').doc(itemList[0].id)
+                                .update({'post_liker': FieldValue.arrayUnion([itemList[0]['post_uid']])});
                             }
                           },
                         ) : null,
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
               Container(
@@ -381,24 +379,26 @@ class _ItemState extends State<Item> {
                                       result = false;
                                       UserData.instance.documentLikeList.remove(documentList[index].id);
                                       if (mounted) {setState(() {});}
-                                      await FirebaseFunctions.instanceFor(app: Firebase.app(), region: 'us-central1').httpsCallable('likePhoto_false')
-                                      .call(
-                                        <String, String>{
-                                        'userUid': UserData.instance.user,
-                                        'postUid': documentList[index]['post_uid'],
-                                        'postId': documentList[index].id,
-                                      });
+                                      await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                                        .update({'user_likes': FieldValue.arrayRemove([documentList[index].id])});
+                                      await FirebaseFirestore.instance.collection('users').doc(documentList[index]['post_uid'])
+                                        .update({'user_like_count': FieldValue.increment(-1)});
+                                      await FirebaseFirestore.instance.collection('posts').doc(documentList[index].id)
+                                        .update({'post_count': FieldValue.increment(-1)});
+                                      await FirebaseFirestore.instance.collection('posts').doc(documentList[index].id)
+                                        .update({'post_liker': FieldValue.arrayRemove([documentList[index]['post_uid']])});
                                     } else {
                                       result = true;
                                       UserData.instance.documentLikeList.add(documentList[index].id);
                                       if (mounted) {setState(() {});}
-                                      await FirebaseFunctions.instanceFor(app: Firebase.app(), region: 'us-central1').httpsCallable('likePhoto_true')
-                                      .call(
-                                        <String, String>{
-                                        'userUid': UserData.instance.user,
-                                        'postUid': documentList[index]['post_uid'],
-                                        'postId': documentList[index].id,
-                                      });
+                                      await FirebaseFirestore.instance.collection('users').doc(UserData.instance.user)
+                                        .update({'user_likes': FieldValue.arrayUnion([documentList[index].id])});
+                                      await FirebaseFirestore.instance.collection('users').doc(documentList[index]['post_uid'])
+                                        .update({'user_like_count': FieldValue.increment(1)});
+                                      await FirebaseFirestore.instance.collection('posts').doc(documentList[index].id)
+                                        .update({'post_count': FieldValue.increment(1)});
+                                      await FirebaseFirestore.instance.collection('posts').doc(documentList[index].id)
+                                        .update({'post_liker': FieldValue.arrayUnion([documentList[index]['post_uid']])});
                                     }
                                   },
                                 ),
@@ -418,3 +418,29 @@ class _ItemState extends State<Item> {
     );
   }
 }
+
+// https://firebasestorage.googleapis.com/v0/b/photo-beauty-24f63.appspot.com/o/image%2Fresize_images%2Fe4d57180-24a5-11ec-a5ed-691b47d60fe4_500x500?alt=media&token=9966ecc8-66e2-4fa9-9f31-9a6e211203bf
+
+// if (result) {
+//   result = false;
+//   UserData.instance.documentLikeList.remove(itemList[0].id);
+//   if (mounted) {setState(() {});}
+//   await FirebaseFunctions.instanceFor(app: Firebase.app(), region: 'us-central1').httpsCallable('likePhoto_false')
+//   .call(
+//     <String, String>{
+//     'userUid': UserData.instance.user,
+//     'postUid': itemList[0]['post_uid'],
+//     'postId': itemList[0].id,
+//   });
+// } else {
+//   result = true;
+//   UserData.instance.documentLikeList.add(itemList[0].id);
+//   if (mounted) {setState(() {});}
+//   await FirebaseFunctions.instanceFor(app: Firebase.app(), region: 'us-central1').httpsCallable('likePhoto_true')
+//   .call(
+//     <String, String>{
+//     'userUid': UserData.instance.user,
+//     'postUid': itemList[0]['post_uid'],
+//     'postId': itemList[0].id,
+//   });
+// }

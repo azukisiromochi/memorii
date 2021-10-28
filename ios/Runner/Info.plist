@@ -42,6 +42,12 @@
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>住所を許可することにより近くのユーザーと繋がりやすくなります。</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>住所を許可することにより近くのユーザーと繋がりやすくなります。</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>住所を許可することにより近くのユーザーと繋がりやすくなります。</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>アプリ上に画像を公開するために画像を選択します。</string>
 	<key>UIBackgroundModes</key>
