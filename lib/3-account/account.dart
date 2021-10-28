@@ -134,10 +134,10 @@ class _AccountAccountMainState extends State<AccountAccountMain> {
                                         onPressed: () async {
                                           HapticFeedback.heavyImpact();
                                           Navigator.of(context).pop();
-                                          // await Navigator.push(
-                                          //   context,
-                                          //   MaterialPageRoute(builder: (context) => AccountEdit()),
-                                          // );
+                                          await Navigator.push(
+                                            context,
+                                            MaterialPageRoute(builder: (context) => AccountEdit()),
+                                          );
                                           start();
                                         },
                                       ),
