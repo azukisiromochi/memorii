@@ -87,10 +87,10 @@ class _PhotoMainState extends State<PhotoMain> {
                         onPressed: () async {
                           await Navigator.push(
                             context,
-                            // MaterialPageRoute(builder: (context) => Post()),
+                            MaterialPageRoute(builder: (context) => Post()),
                             // MaterialPageRoute(builder: (context) => Gallery())
                             // MaterialPageRoute(builder: (context) => Post(widget.onTap)),
-                            MaterialPageRoute(builder: (context) => Html()),
+                            // MaterialPageRoute(builder: (context) => Html()),
                           );
                           like();
                         },
