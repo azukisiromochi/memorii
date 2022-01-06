@@ -1,57 +1,122 @@
-import 'dart:typed_data';
+import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:photo_manager/photo_manager.dart';
 import 'dart:async';
 import 'dart:ui';
 import 'package:sizer/sizer.dart';
-// import 'dart:math';
-// import 'package:cloud_firestore/cloud_firestore.dart';
-// import 'package:firebase_storage/firebase_storage.dart';
-// import 'package:image_picker/image_picker.dart';
-// import 'package:uuid/uuid.dart';
-// import '../../singleton.dart';
+import 'dart:math';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:uuid/uuid.dart';
+import '../../singleton.dart';
+import 'package:video_player/video_player.dart';
 
 class Post extends StatefulWidget {
+  final Function() onTap;
+  const Post(this.onTap);
+
   @override
   _PostState createState() => _PostState();
 }
 
 class _PostState extends State<Post> {
-  List<AssetEntity> assets = [];
-  int postIndex = 0;
-  int currentPage = 0;
 
-  var grid;
+  var uuid = Uuid();
+  File? imageFile;
+  String imageFilePath = '';
+  final picker = ImagePicker();
+  String imageUuid = "";
+  String videoUuid = "";
+  String defaultImage = "";
+  String imageUrl1080 = "";
+  String imageUrl500 = "";
+  String videoUrl = "";
+  String contestImageUrl1080 = "";
+  String contestImageUrl500 = "";
+
+  File? movieFile;
+  String movieFilePath = '';
+
+  String contest = "";
+
+  String hashTag1 = "";
+  String hashTag2 = "";
+  final hashTag3 = TextEditingController();
+  final hashTag4 = TextEditingController();
+  final hashTag5 = TextEditingController();
+
+  int postHashTag1 = 0;
+  int postHashTag2 = 0;
+  int postHashTag3 = 0;
+
+  List list = [
+    'assets/default1.png',
+    'assets/default2.png',
+    'assets/default3.png',
+    'assets/default4.png',
+    'assets/default5.png',
+  ];
 
   @override
   void initState() {
-    _fetchAssets();
     super.initState();
+    imageUuid = uuid.v1().substring(0,23);
+    videoUuid = uuid.v1().substring(0,23);
+    defaultImage = list[Random().nextInt(4)];
+    imageUrl1080 = 'https://firebasestorage.googleapis.com/v0/b/anime-c4830.appspot.com/o/image%2Fresize_images%2F' + imageUuid + '_1080x1080?alt=media&token';
+    imageUrl500 = 'https://firebasestorage.googleapis.com/v0/b/anime-c4830.appspot.com/o/image%2Fresize_images%2F' + imageUuid + '_500x500?alt=media&token';
+    videoUrl = 'https://firebasestorage.googleapis.com/v0/b/anime-c4830.appspot.com/o/image%2F' + videoUuid + '?alt=media&token';
+    if (mounted) {setState(() {});}
   }
+  // https://firebasestorage.googleapis.com/v0/b/anime-c4830.appspot.com/o/image%2Fdfd627d0-69f9-11ec-bb9e?alt=media&token
+  // https://firebasestorage.googleapis.com/v0/b/anime-c4830.appspot.com/o/image%2Fa6fe68d0-637f-11ec-9d4a?alt=media&token
+
+  Future<void> getImage() async {
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      imageFile = File(pickedFile.path);
+      imageFilePath = pickedFile.path;
+      print('object');
+      if (mounted) {setState(() {});}
+    }
+  }
+  Future<void> getVideo() async {
+    final pickedFile = await ImagePicker().pickVideo(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      print(imageUuid);
+      print(pickedFile.path);
+      movieFile = File(pickedFile.path);
+      movieFilePath = pickedFile.path;
+      if (mounted) {setState(() {});}
+    }
+  }
+  Future<void> postImage() async {
+    await FirebaseFirestore.instance.collection('posts').doc(imageUuid)
+    .set({
+      'post_count': 0,
+      'post_liker': [],
+      'post_instagram': UserData.instance.account[0]['user_instagram'],
+      'post_name': UserData.instance.account[0]['user_name'],
+      'post_image_1080': imageUrl1080,
+      'post_image_500': imageUrl500,
+      'post_video': videoUrl,
+      'post_image_name': imageUuid,
+      'post_image_path': imageFilePath.replaceFirst('File: \'', '').replaceFirst('\'', ''),
+      'post_tags': [hashTag1,hashTag2,],
+      'post_uid': UserData.instance.user,
+      'post_time': DateTime.now(),
+    });
+    widget.onTap();
+    await FirebaseStorage.instance.ref().child("image/$imageUuid").putFile(File(imageFilePath));
+    await FirebaseStorage.instance.ref().child("image/$videoUuid").putFile(File(movieFilePath));
+  }
+  onHashtag1(String value) {postHashTag1 = value.length; if (mounted) {setState(() {});}}
+  onHashtag2(String value) {postHashTag2 = value.length; if (mounted) {setState(() {});}}
+  onHashtag3(String value) {postHashTag3 = value.length; if (mounted) {setState(() {});}}
 
   @override
   Widget build(BuildContext context) {
-    if (grid == null) {
-      grid = Expanded(
-        child: GridView.builder(
-          shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 4,
-          ),
-          itemCount: assets.length,
-          itemBuilder: (_, index) {
-            return GestureDetector(
-              child: AssetThumbnail(asset: assets[index]),
-              onTap: () => setState(() {
-                postIndex = index;
-              }),
-            );
-          },
-        ),
-      );
-    }
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -78,1383 +143,617 @@ class _PostState extends State<Post> {
               child: Text(
                 "作品投稿",
                 style: TextStyle(
-                    color: Colors.black87,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15),
+                  color: Colors.black87,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15
+                ),
               ),
             ),
             Align(
-                alignment: Alignment.centerRight,
-                child: GestureDetector(
-                  child: Container(
-                    margin: EdgeInsets.only(
-                      right: 10,
-                    ),
-                    child: Text(
-                      "投稿",
-                      style: TextStyle(
-                          color: Color(0xFFFF8D89),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15),
+              alignment: Alignment.centerRight,
+              child: GestureDetector(
+                child: Container(
+                  margin: EdgeInsets.only(right: 10,),
+                  child: Text(
+                    '投稿',
+                    style: TextStyle(
+                      color: Color(0xFFFF8D89),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15
                     ),
                   ),
-                  onTap: () {
-                    if (mounted) {
-                      setState(() {});
-                    }
-                  },
-                )),
+                ),
+                onTap: () {
+                  postImage();
+                },
+              )
+            )
           ],
         ),
         backgroundColor: Colors.white,
         centerTitle: true,
         elevation: 0.0,
       ),
-      body: _Inherited(
-        index: postIndex,
+      body: GestureDetector(
         child: Column(
           children: [
-            MainImage(
-              assets: assets,
+            Container(
+              margin: EdgeInsets.only(top: 10, right: 3.5.w, left: 3.5.w),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  GestureDetector(
+                    child: Container(
+                      child: imageFile == null ?
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Container(
+                            width: 45.w,
+                            height: 45.w,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.all(Radius.circular(5)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 5.0,
+                                  spreadRadius: 1.0,
+                                  offset: Offset(0, 0)
+                                ),
+                              ],
+                            ),
+                          ),
+                          Column(
+                            children: [
+                              Icon(
+                                Icons.image,
+                                color: Color(0xFFFF8D89),
+                                size: 70,
+                              ),
+                              Text(
+                                '画像アップロード',
+                                style: TextStyle(
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 8.sp,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ) : 
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Container(
+                            width: 45.w,
+                            height: 45.w,
+                            decoration: BoxDecoration(
+                              color: Color(0xFFFF8D89),
+                              borderRadius: BorderRadius.all(Radius.circular(5)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 5.0,
+                                  spreadRadius: 1.0,
+                                  offset: Offset(0, 0)
+                                ),
+                              ],
+                            ),
+                          ),
+                          Column(
+                            children: [
+                              Icon(
+                                Icons.image,
+                                color: Colors.white,
+                                size: 70,
+                              ),
+                              Text(
+                                '画像アップロード完了',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 8.sp,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    onTap: () {
+                      getImage();
+                    },
+                  ),
+                  GestureDetector(
+                    child: Container(
+                      child: movieFile == null ? 
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Container(
+                            width: 45.w,
+                            height: 45.w,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.all(Radius.circular(5)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 5.0,
+                                  spreadRadius: 1.0,
+                                  offset: Offset(0, 0)
+                                ),
+                              ],
+                            ),
+                          ),
+                          Column(
+                            children: [
+                              Icon(
+                                Icons.movie,
+                                color: Color(0xFFFF8D89),
+                                size: 70,
+                              ),
+                              Text(
+                                '動画アップロード',
+                                style: TextStyle(
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 8.sp,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ) :
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Container(
+                            width: 45.w,
+                            height: 45.w,
+                            decoration: BoxDecoration(
+                              color: Color(0xFFFF8D89),
+                              borderRadius: BorderRadius.all(Radius.circular(5)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 5.0,
+                                  spreadRadius: 1.0,
+                                  offset: Offset(0, 0)
+                                ),
+                              ],
+                            ),
+                          ),
+                          Column(
+                            children: [
+                              Icon(
+                                Icons.movie,
+                                color: Colors.white,
+                                size: 70,
+                              ),
+                              Text(
+                                '動画アップロード完了',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 8.sp,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    onTap: () {
+                      getVideo();
+                    },
+                  ),
+                ],
+              ),
             ),
-            grid,
+            Container(
+              child: Container(
+                width: 90.w,
+                margin: EdgeInsets.only(top: 50, right: 5.w, left: 5.w,),
+                color: Colors.white,
+                child: Row(
+                  children: [
+                    Container(
+                      width: 30,
+                      margin: EdgeInsets.only(right: 5, left: 5,),
+                    ),
+                    Container(
+                      margin: EdgeInsets.only(left: 5.w,),
+                      child: Text(
+                        "ハッシュタグ No.1",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                    Spacer(),
+                    hashTag1 == '' ?
+                    Container(
+                      margin: EdgeInsets.only(left: 5.w,),
+                      child: Text(
+                        "選択してください",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          color: Color(0xFFFF8D89),
+                        ),
+                      ),
+                    ) : Container(),
+                  ],
+                ),
+              ),
+              ),
+              Container(
+                child: Container(
+                  width: 90.w,
+                  margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w,),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 30,
+                        height: 30,
+                        margin: EdgeInsets.only(right: 5, bottom: 0, left: 5,),
+                        decoration: BoxDecoration(
+                          color: hashTag1 == '' ? Colors.red : Colors.black87,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: Icon(
+                          Icons.play_arrow,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                      GestureDetector(
+                        child: Container(
+                          margin: EdgeInsets.only(left: 5.w,),
+                          color: Colors.white,
+                          width: 70.w,
+                          height: 45,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                hashTag1,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        onTap: () async {
+                          await showCupertinoModalPopup(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return CupertinoActionSheet(
+                                actions: [
+                                  Container(
+                                    color: Colors.black87,
+                                    child: CupertinoActionSheetAction(
+                                      child: Text(
+                                        'メンズ',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                      onPressed: () async {
+                                        hashTag1 = "メンズ";
+                                        if (mounted) {setState(() {});}
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                  ),
+                                  Container(
+                                    color: Colors.black87,
+                                    child: CupertinoActionSheetAction(
+                                      child: Text(
+                                        'レディース',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                      onPressed: () async {
+                                        hashTag1 = "レディース";
+                                        if (mounted) {setState(() {});}
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                  ),
+                                ],
+                                cancelButton: CupertinoButton(
+                                  color: Colors.black87,
+                                  child: Text(
+                                    'キャンセル',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  }
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Container(
+              width: 90.w,
+              height: 1,
+              margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w, bottom: 20,),
+              color: Colors.black12,
+              ),
+              Container(
+                child: Container(
+                  width: 90.w,
+                  margin: EdgeInsets.only(right: 5.w, left: 5.w,),
+                  color: Colors.white,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 30,
+                        margin: EdgeInsets.only(right: 5, left: 5,),
+                      ),
+                      Container(
+                        margin: EdgeInsets.only(left: 5.w,),
+                        child: Text(
+                          "ハッシュタグ No.2",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                      Spacer(),
+                      hashTag2 == '' ?
+                      Container(
+                        margin: EdgeInsets.only(left: 5.w,),
+                        child: Text(
+                          "選択してください",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: Color(0xFFFF8D89),
+                          ),
+                        ),
+                      ) : Container(),
+                    ],
+                  ),
+                ),
+              ),
+              Container(
+                width: 90.w,
+                margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w,),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 30,
+                      height: 30,
+                      margin: EdgeInsets.only(right: 5, bottom: 0, left: 5,),
+                      decoration: BoxDecoration(
+                        color: hashTag2 == '' ? Colors.red : Colors.black87,
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      child: Icon(
+                        Icons.play_arrow,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                    GestureDetector(
+                      child: Container(
+                        margin: EdgeInsets.only(left: 5.w,),
+                        color: Colors.white,
+                        width: 70.w,
+                        height: 45,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              hashTag2,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      onTap: () async {
+                        await showCupertinoModalPopup(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return CupertinoActionSheet(
+                              actions: [
+                                Container(
+                                  color: Colors.black87,
+                                  child: CupertinoActionSheetAction(
+                                    child: Text(
+                                      "ストリート",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    onPressed: () async {
+                                      hashTag2 = "ストリート";
+                                      if (mounted) {setState(() {});}
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ),
+                                Container(
+                                  color: Colors.black87,
+                                  child: CupertinoActionSheetAction(
+                                    child: Text(
+                                      "クラシック",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    onPressed: () async {
+                                      hashTag2 = "クラシック";
+                                      if (mounted) {setState(() {});}
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ),
+                                Container(
+                                  color: Colors.black87,
+                                  child: CupertinoActionSheetAction(
+                                    child: Text(
+                                      "モード",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    onPressed: () async {
+                                      hashTag2 = "モード";
+                                      if (mounted) {setState(() {});}
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ),
+                                Container(
+                                  color: Colors.black87,
+                                  child: CupertinoActionSheetAction(
+                                    child: Text(
+                                      "フェミニン",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    onPressed: () async {
+                                      hashTag2 = "フェミニン";
+                                      if (mounted) {setState(() {});}
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ),
+                                Container(
+                                  color: Colors.black87,
+                                  child: CupertinoActionSheetAction(
+                                    child: Text(
+                                      "グランジ",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    onPressed: () async {
+                                      hashTag2 = "グランジ";
+                                      if (mounted) {setState(() {});}
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ),
+                                Container(
+                                  color: Colors.black87,
+                                  child: CupertinoActionSheetAction(
+                                    child: Text(
+                                      "アンニュイ",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    onPressed: () async {
+                                      hashTag2 = "アンニュイ";
+                                      if (mounted) {setState(() {});}
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ),
+                                Container(
+                                  color: Colors.black87,
+                                  child: CupertinoActionSheetAction(
+                                    child: Text(
+                                      "ロック",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    onPressed: () async {
+                                      hashTag2 = "ロック";
+                                      if (mounted) {setState(() {});}
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ),
+                                Container(
+                                  color: Colors.black87,
+                                  child: CupertinoActionSheetAction(
+                                    child: Text(
+                                      "クリエイティブ",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    onPressed: () async {
+                                      hashTag2 = "クリエイティブ";
+                                      if (mounted) {setState(() {});}
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ),
+                              ],
+                              cancelButton: CupertinoButton(
+                                color: Colors.black87,
+                                child: Text(
+                                  'キャンセル',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                }
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+              width: 90.w,
+              height: 1,
+              margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w, bottom: 20,),
+              color: Colors.black12,
+              ),
+              Container(
+              height: 150,
+              )
           ],
         ),
-      ),
-    );
-  }
-
-  _fetchAssets() async {
-    final albums = await PhotoManager.getAssetPathList(onlyAll: true);
-    final recentAlbum = albums.first;
-    final recentAssets = await recentAlbum.getAssetListRange(
-      start: 0,
-      end: 1000000,
-    );
-    setState(() => assets = recentAssets);
-  }
-}
-
-class AssetThumbnail extends StatelessWidget {
-  const AssetThumbnail({
-    Key? key,
-    required this.asset,
-  }) : super(key: key);
-
-  final AssetEntity asset;
-
-  Future<Uint8List> _futureUint8List(Future<Uint8List?> src) async {
-    var completer = new Completer<Uint8List>();
-    src.then((value) => completer.complete(value!));
-    return completer.future;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<Uint8List>(
-      future: _futureUint8List(asset.originBytes),
-      builder: (_, snapshot) {
-        final bytes = snapshot.data;
-        if (bytes == null) return CircularProgressIndicator();
-        return Container(
-          child: Image.memory(bytes, fit: BoxFit.cover),
-        );
-      },
-    );
-  }
-}
-
-class MainImage extends StatelessWidget {
-  MainImage({
-    Key? key,
-    required this.assets,
-  }) : super(key: key);
-
-  final List<AssetEntity> assets;
-
-  @override
-  Widget build(BuildContext context) {
-    var newIndex = _Inherited.of(context) == null ? 0 : _Inherited.of(context)!.index;
-    return Container(
-      width: 100.w,
-      height: 100.w,
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 1,
-        ),
-        itemCount: assets.length,
-        itemBuilder: (_, index) {
-          return AssetThumbnail(asset: assets[newIndex]);
+        onTap: () {
+          FocusScope.of(context).unfocus();
         },
       ),
     );
   }
 }
-
-class _Inherited extends InheritedWidget {
-  const _Inherited({
-    Key? key,
-    required this.index,
-    required Widget child,
-  }) : super(key: key, child: child);
-
-  final int index;
-
-  static _Inherited? of(BuildContext context) {
-    final _Inherited? result = context.dependOnInheritedWidgetOfExactType<_Inherited>();
-    return result;
-  }
-
-  @override
-  bool updateShouldNotify(_Inherited old) => index != old.index;
-}
-
-// class Post extends StatefulWidget {
-//   @override
-//   _PostState createState() => _PostState();
-// }
-
-// class _PostState extends State<Post> {
-//   List<AssetEntity> assets = [];
-//   Uint8List? byte;
-
-//   @override
-//   void initState() {
-//     _fetchAssets();
-//     super.initState();
-//   }
-
-//   Future<Uint8List> _futureUint8List(Future<Uint8List?> src) async {
-//     var completer = new Completer<Uint8List>();
-//     src.then((value) => completer.complete(value!));
-//     return completer.future;
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         automaticallyImplyLeading: false,
-//         title: Stack(
-//           alignment: Alignment.center,
-//           children: <Widget>[
-//             Align(
-//               alignment: Alignment.centerLeft,
-//               child: Padding(
-//                 padding: const EdgeInsets.all(8.0),
-//                 child: GestureDetector(
-//                   child: Icon(
-//                     Icons.clear_outlined,
-//                     color: Colors.black87,
-//                   ),
-//                   onTap: () {
-//                     Navigator.pop(context);
-//                   },
-//                 ),
-//               ),
-//             ),
-//             Align(
-//               alignment: Alignment.center,
-//               child: Text(
-//                 "作品選択",
-//                 style: TextStyle(
-//                   color: Colors.black87,
-//                   fontWeight: FontWeight.bold,
-//                   fontSize: 15
-//                 ),
-//               ),
-//             ),
-//             Align(
-//               alignment: Alignment.centerRight,
-//               child: GestureDetector(
-//                 child: Container(
-//                   margin: EdgeInsets.only(right: 10,),
-//                   child: Text(
-//                     "投稿",
-//                     style: TextStyle(
-//                       color: Color(0xFFFF8D89),
-//                       fontWeight: FontWeight.bold,
-//                       fontSize: 15
-//                     ),
-//                   ),
-//                 ),
-//                 onTap: () {
-//                   if (mounted) {setState(() {});}
-//                 },
-//               )
-//             ),
-//           ],
-//         ),
-//         backgroundColor: Colors.white,
-//         centerTitle: true,
-//         elevation: 0.0,
-//       ),
-//       body: Column(
-//         children: [
-//           Container(
-//             width: 100.w,
-//             height: 100.w,
-//             child: byte == null ? Container() : 
-//             Image(
-//               image: ResizeImage(
-//                 MemoryImage(byte!,),
-//                 width: 2000,
-//                 height: 2000,
-//               ),
-//               fit: BoxFit.fitWidth,
-//             ),
-//           ),
-//           Expanded(
-//             child: Container(
-//               width: 100.w,
-//               child: GridView.builder(
-//                 shrinkWrap: true,
-//                 physics: NeverScrollableScrollPhysics(),
-//                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-//                   crossAxisCount: 4,
-//                 ),
-//                 itemCount: assets.length,
-//                 itemBuilder: (_, index) { 
-//                   return FutureBuilder<Uint8List>(
-//                     future: _futureUint8List(assets[index].originBytes),
-//                     builder: (_, snapshot) {
-//                       final bytes = snapshot.data;
-//                       if (bytes == null) return CircularProgressIndicator();
-//                       return GestureDetector(
-//                         child: Image.memory(bytes, fit: BoxFit.cover),
-//                         onTap: () {
-//                           byte = bytes;
-//                           print(MemoryImage(byte!));
-//                           if (mounted) {setState(() {});}
-//                         },
-//                       );
-//                     },
-//                   );
-//                 },
-//               ),
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-
-//   _fetchAssets() async {
-//     final albums = await PhotoManager.getAssetPathList(onlyAll: true);
-//     final recentAlbum = albums.first;
-//     final recentAssets = await recentAlbum.getAssetListRange(
-//       start: 0,
-//       end: 1000000,
-//     );
-//     setState(() => assets = recentAssets);
-//   }
-// }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// class Post extends StatefulWidget {
-//   final Function() onTap;
-//   const Post(this.onTap);
-
-//   @override
-//   _PostState createState() => _PostState();
-// }
-
-// class _PostState extends State<Post> {
-
-//   var uuid = Uuid();
-//   File? imageFile;
-//   String imageFilePath = '';
-//   final picker = ImagePicker();
-//   String imageUuid = "";
-//   String defaultImage = "";
-//   String imageUrl1080 = "";
-//   String imageUrl500 = "";
-//   String contestImageUrl1080 = "";
-//   String contestImageUrl500 = "";
-
-//   String contest = "";
-
-//   String hashTag1 = "";
-//   String hashTag2 = "";
-//   final hashTag3 = TextEditingController();
-//   final hashTag4 = TextEditingController();
-//   final hashTag5 = TextEditingController();
-
-//   int postHashTag1 = 0;
-//   int postHashTag2 = 0;
-//   int postHashTag3 = 0;
-
-//   List list = [
-//     'assets/default1.png',
-//     'assets/default2.png',
-//     'assets/default3.png',
-//     'assets/default4.png',
-//     'assets/default5.png',
-//   ];
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     imageUuid = uuid.v1().substring(0,23);
-//     defaultImage = list[Random().nextInt(4)];
-//     imageUrl1080 = 'https://firebasestorage.googleapis.com/v0/b/photo-beauty-24f63.appspot.com/o/image%2Fresize_images%2F' + imageUuid + '_1080x1080?alt=media&token';
-//     imageUrl500 = 'https://firebasestorage.googleapis.com/v0/b/photo-beauty-24f63.appspot.com/o/image%2Fresize_images%2F' + imageUuid + '_500x500?alt=media&token';
-//     // contestImageUrl1080 = 'https://firebasestorage.googleapis.com/v0/b/photo-beauty-24f63.appspot.com/o/contests%2Fresize_images%2F' + imageUuid + '_1080x1080?alt=media&token';
-//     // contestImageUrl500 = 'https://firebasestorage.googleapis.com/v0/b/photo-beauty-24f63.appspot.com/o/contests%2Fresize_images%2F' + imageUuid + '_500x500?alt=media&token';
-//     if (mounted) {setState(() {});}
-//   }
-//   Future<void> getImage() async {
-//     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-//     if (pickedFile != null) {
-//       imageFile = File(pickedFile.path);
-//       imageFilePath = pickedFile.path;
-//       if (mounted) {setState(() {});}
-//     }
-//   }
-//   Future<void> postImage() async {
-//     // if (contest == 'はい'){
-//     //   await FirebaseFirestore.instance.collection('posts').doc(imageUuid)
-//     //   .set({
-//     //     'post_count': 0,
-//     //     'post_liker': [],
-//     //     'post_instagram': UserData.instance.account[0]['user_instagram'],
-//     //     'post_name': UserData.instance.account[0]['user_name'],
-//     //     'post_image_1080': imageUrl1080,
-//     //     'post_image_500': imageUrl500,
-//     //     'post_image_name': imageUuid,
-//     //     'post_image_path': imageFilePath.replaceFirst('File: \'', '').replaceFirst('\'', ''),
-//     //     'post_tags': [hashTag1,hashTag2,hashTag3.text.replaceFirst('#', ''),hashTag4.text.replaceFirst('#', ''),hashTag5.text.replaceFirst('#', ''),],
-//     //     'post_uid': UserData.instance.user,
-//     //     'post_time': DateTime.now(),
-//     //   });
-//     //   await FirebaseFirestore.instance.collection('contests').doc(imageUuid)
-//     //   .set({
-//     //     'post_count': 0,
-//     //     'post_liker': [],
-//     //     'post_instagram': UserData.instance.account[0]['user_instagram'],
-//     //     'post_name': UserData.instance.account[0]['user_name'],
-//     //     'post_image_1080': contestImageUrl1080,
-//     //     'post_image_500': contestImageUrl500,
-//     //     'post_image_name': imageUuid,
-//     //     'post_image_path': imageFilePath.replaceFirst('File: \'', '').replaceFirst('\'', ''),
-//     //     'post_tags': [hashTag1,hashTag2,hashTag3.text.replaceFirst('#', ''),hashTag4.text.replaceFirst('#', ''),hashTag5.text.replaceFirst('#', ''),],
-//     //     'post_uid': UserData.instance.user,
-//     //     'post_time': DateTime.now(),
-//     //   });
-//     //   widget.onTap();
-//     //   await FirebaseStorage.instance.ref().child("image/$imageUuid").putFile(File(imageFilePath));
-//     //   await FirebaseStorage.instance.ref().child("contests/$imageUuid").putFile(File(imageFilePath));
-//     // } else if (contest == 'いいえ') {
-//       await FirebaseFirestore.instance.collection('posts').doc(imageUuid)
-//       .set({
-//         'post_count': 0,
-//         'post_liker': [],
-//         'post_instagram': UserData.instance.account[0]['user_instagram'],
-//         'post_name': UserData.instance.account[0]['user_name'],
-//         'post_image_1080': imageUrl1080,
-//         'post_image_500': imageUrl500,
-//         'post_image_name': imageUuid,
-//         'post_image_path': imageFilePath.replaceFirst('File: \'', '').replaceFirst('\'', ''),
-//         'post_tags': [hashTag1,hashTag2,hashTag3.text.replaceFirst('#', ''),hashTag4.text.replaceFirst('#', ''),hashTag5.text.replaceFirst('#', ''),],
-//         'post_uid': UserData.instance.user,
-//         'post_time': DateTime.now(),
-//       });
-//       widget.onTap();
-//       await FirebaseStorage.instance.ref().child("image/$imageUuid").putFile(File(imageFilePath));
-//     // }
-//   }
-//   onHashtag1(String value) {postHashTag1 = value.length;if (mounted) {setState(() {});}}
-//   onHashtag2(String value) {postHashTag2 = value.length;if (mounted) {setState(() {});}}
-//   onHashtag3(String value) {postHashTag3 = value.length;if (mounted) {setState(() {});}}
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         automaticallyImplyLeading: false,
-//         title: Stack(
-//           alignment: Alignment.center,
-//           children: <Widget>[
-//             Align(
-//               alignment: Alignment.centerLeft,
-//               child: Padding(
-//                 padding: const EdgeInsets.all(8.0),
-//                 child: GestureDetector(
-//                   child: Icon(
-//                     Icons.clear_outlined,
-//                     color: Colors.black87,
-//                   ),
-//                   onTap: () {
-//                     Navigator.pop(context);
-//                   },
-//                 ),
-//               ),
-//             ),
-//             Align(
-//               alignment: Alignment.center,
-//               child: Text(
-//                 "作品投稿",
-//                 style: TextStyle(
-//                   color: Colors.black87,
-//                   fontWeight: FontWeight.bold,
-//                   fontSize: 15
-//                 ),
-//               ),
-//             ),
-//             imageFile == null ? 
-//             Align(
-//               alignment: Alignment.centerRight,
-//               child: GestureDetector(
-//                 child: Container(
-//                   margin: EdgeInsets.only(right: 10,),
-//                   child: Text(
-//                     '画像',
-//                     style: TextStyle(
-//                       color: Color(0xFFFF8D89),
-//                       fontWeight: FontWeight.bold,
-//                       fontSize: 15
-//                     ),
-//                   ),
-//                 ),
-//                 onTap: () {
-//                   getImage();
-//                 },
-//               )
-//             )
-//             :
-//             Align(
-//               alignment: Alignment.centerRight,
-//               child: GestureDetector(
-//                 child: Container(
-//                   margin: EdgeInsets.only(right: 10,),
-//                   child: Text(
-//                     '投稿',
-//                     style: TextStyle(
-//                       color: hashTag1 == '' || hashTag2 == '' ? Colors.black12 : Color(0xFFFF8D89),
-//                       fontWeight: FontWeight.bold,
-//                       fontSize: 15
-//                     ),
-//                   ),
-//                 ),
-//                 onTap: () {
-//                   if (hashTag1 != '' && hashTag2 != '') {
-//                     postImage();
-//                   }
-//                 },
-//               )
-//             ),
-//           ],
-//         ),
-//         backgroundColor: Colors.white,
-//         centerTitle: true,
-//         elevation: 0.0,
-//       ),
-//       body: SingleChildScrollView(
-//         child: GestureDetector(
-//           child: Column(
-//             children: [
-//               Stack(
-//                 children: [
-//                   imageFile == null ?
-//                   Container(
-//                     width: 100.w,
-//                     height: 250,
-//                     decoration: BoxDecoration(
-//                       image: DecorationImage(
-//                         image: AssetImage(
-//                           defaultImage,
-//                         ),
-//                         fit: BoxFit.cover,
-//                       ),
-//                     ),
-//                     child: BackdropFilter(
-//                       filter: ImageFilter.blur(sigmaX: 0, sigmaY:0),
-//                       child: Container(
-//                         color: Colors.white.withOpacity(0.5),
-//                       ),
-//                     ),
-//                   )
-//                   :
-//                   Container(
-//                     width: 100.w,
-//                     height: 250,
-//                     child: Stack(
-//                       children: <Widget>[
-//                         Container(
-//                           width: 100.w,
-//                           height: 250,
-//                           child: Image.file(
-//                             imageFile!,
-//                             fit: BoxFit.cover,
-//                           ),
-//                         ),
-//                         BackdropFilter(
-//                           filter: ImageFilter.blur(sigmaX: 0, sigmaY:0),
-//                           child: Container(
-//                             color: Colors.white.withOpacity(0.5),
-//                           ),
-//                         ),
-//                       ]
-//                     ),
-//                   ),
-//                   imageFile == null ?
-//                   Container(
-//                     width: 100.w,
-//                     height: 250,
-//                     decoration: BoxDecoration(
-//                       image: DecorationImage(
-//                         image: AssetImage(
-//                           defaultImage,
-//                         ),
-//                         fit: BoxFit.contain,
-//                       ),
-//                     ),
-//                   )
-//                   :
-//                   Container(
-//                     width: 100.w,
-//                     height: 250,
-//                     child: Image.file(
-//                       imageFile!,
-//                       fit: BoxFit.contain,
-//                     ),
-//                   ),
-//                   imageFile == null ?
-//                   Container(
-//                     width: 100.w,
-//                     height: 250,
-//                     child: Center(
-//                       child: Text(
-//                         'default image',
-//                         style: TextStyle(
-//                           color: Colors.white,
-//                         ),
-//                       ),
-//                     ),
-//                   )
-//                   :
-//                   Container(),
-//                 ],
-//               ),
-//               SizedBox(
-//                 height: 30,
-//               ),
-//               // Container(
-//               //   child: Container(
-//               //     width: 90.w,
-//               //     margin: EdgeInsets.only(right: 5.w, left: 5.w,),
-//               //     color: Colors.white,
-//               //     child: Row(
-//               //       children: [
-//               //         Container(
-//               //           width: 30,
-//               //           margin: EdgeInsets.only(right: 5, left: 5,),
-//               //         ),
-//               //         Container(
-//               //           margin: EdgeInsets.only(left: 5.w,),
-//               //           child: Text(
-//               //             "コンテストに応募しますか？",
-//               //             style: TextStyle(
-//               //               fontWeight: FontWeight.bold,
-//               //               fontSize: 13,
-//               //             ),
-//               //           ),
-//               //         ),
-//               //         Spacer(),
-//               //         contest == '' ?
-//               //         Container(
-//               //           margin: EdgeInsets.only(left: 5.w,),
-//               //           child: Text(
-//               //             "選択してください",
-//               //             style: TextStyle(
-//               //               fontWeight: FontWeight.bold,
-//               //               fontSize: 13,
-//               //               color: Color(0xFFFF8D89),
-//               //             ),
-//               //           ),
-//               //         ) : Container(),
-//               //       ],
-//               //     ),
-//               //   ),
-//               // ),
-//               // Container(
-//               //   child: Container(
-//               //     width: 90.w,
-//               //     margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w,),
-//               //     child: Row(
-//               //       children: [
-//               //         Container(
-//               //           width: 30,
-//               //           height: 30,
-//               //           margin: EdgeInsets.only(right: 5, bottom: 0, left: 5,),
-//               //           decoration: BoxDecoration(
-//               //             color: contest == '' ? Colors.red : Colors.black87,
-//               //             borderRadius: BorderRadius.circular(5),
-//               //           ),
-//               //           child: Icon(
-//               //             Icons.play_arrow,
-//               //             color: Colors.white,
-//               //             size: 20,
-//               //           ),
-//               //         ),
-//               //         GestureDetector(
-//               //           child: Container(
-//               //             margin: EdgeInsets.only(left: 5.w,),
-//               //             color: Colors.white,
-//               //             width: 70.w,
-//               //             height: 45,
-//               //             child: Row(
-//               //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//               //               children: [
-//               //                 Text(
-//               //                   contest,
-//               //                   style: TextStyle(
-//               //                     fontWeight: FontWeight.bold,
-//               //                     fontSize: 13,
-//               //                   ),
-//               //                 ),
-//               //               ],
-//               //             ),
-//               //           ),
-//               //           onTap: () async {
-//               //             await showCupertinoModalPopup(
-//               //               context: context,
-//               //               builder: (BuildContext context) {
-//               //                 return CupertinoActionSheet(
-//               //                   actions: [
-//               //                     Container(
-//               //                       color: Colors.black87,
-//               //                       child: CupertinoActionSheetAction(
-//               //                         child: Text(
-//               //                           'はい',
-//               //                           style: TextStyle(
-//               //                             color: Colors.white,
-//               //                             fontSize: 15,
-//               //                           ),
-//               //                         ),
-//               //                         onPressed: () async {
-//               //                           contest = "はい";
-//               //                           if (mounted) {setState(() {});}
-//               //                           Navigator.of(context).pop();
-//               //                         },
-//               //                       ),
-//               //                     ),
-//               //                     Container(
-//               //                       color: Colors.black87,
-//               //                       child: CupertinoActionSheetAction(
-//               //                         child: Text(
-//               //                           'いいえ',
-//               //                           style: TextStyle(
-//               //                             color: Colors.white,
-//               //                             fontSize: 15,
-//               //                           ),
-//               //                         ),
-//               //                         onPressed: () async {
-//               //                           contest = "いいえ";
-//               //                           if (mounted) {setState(() {});}
-//               //                           Navigator.of(context).pop();
-//               //                         },
-//               //                       ),
-//               //                     ),
-//               //                   ],
-//               //                   cancelButton: CupertinoButton(
-//               //                     color: Colors.black87,
-//               //                     child: Text(
-//               //                       'キャンセル',
-//               //                       style: TextStyle(
-//               //                         color: Colors.white,
-//               //                         fontSize: 15,
-//               //                       ),
-//               //                     ),
-//               //                     onPressed: () {
-//               //                       Navigator.of(context).pop();
-//               //                     }
-//               //                   ),
-//               //                 );
-//               //               },
-//               //             );
-//               //           },
-//               //         ),
-//               //       ],
-//               //     ),
-//               //   ),
-//               // ),
-//               // Container(
-//               //   width: 90.w,
-//               //   height: 1,
-//               //   margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w, bottom: 20,),
-//               //   color: Colors.black12,
-//               // ),
-//               Container(
-//                 child: Container(
-//                   width: 90.w,
-//                   margin: EdgeInsets.only(right: 5.w, left: 5.w,),
-//                   color: Colors.white,
-//                   child: Row(
-//                     children: [
-//                       Container(
-//                         width: 30,
-//                         margin: EdgeInsets.only(right: 5, left: 5,),
-//                       ),
-//                       Container(
-//                         margin: EdgeInsets.only(left: 5.w,),
-//                         child: Text(
-//                           "ハッシュタグ No.1",
-//                           style: TextStyle(
-//                             fontWeight: FontWeight.bold,
-//                             fontSize: 13,
-//                           ),
-//                         ),
-//                       ),
-//                       Spacer(),
-//                       hashTag1 == '' ?
-//                       Container(
-//                         margin: EdgeInsets.only(left: 5.w,),
-//                         child: Text(
-//                           "選択してください",
-//                           style: TextStyle(
-//                             fontWeight: FontWeight.bold,
-//                             fontSize: 13,
-//                             color: Color(0xFFFF8D89),
-//                           ),
-//                         ),
-//                       ) : Container(),
-//                     ],
-//                   ),
-//                 ),
-//               ),
-//               Container(
-//                 child: Container(
-//                   width: 90.w,
-//                   margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w,),
-//                   child: Row(
-//                     children: [
-//                       Container(
-//                         width: 30,
-//                         height: 30,
-//                         margin: EdgeInsets.only(right: 5, bottom: 0, left: 5,),
-//                         decoration: BoxDecoration(
-//                           color: hashTag1 == '' ? Colors.red : Colors.black87,
-//                           borderRadius: BorderRadius.circular(5),
-//                         ),
-//                         child: Icon(
-//                           Icons.play_arrow,
-//                           color: Colors.white,
-//                           size: 20,
-//                         ),
-//                       ),
-//                       GestureDetector(
-//                         child: Container(
-//                           margin: EdgeInsets.only(left: 5.w,),
-//                           color: Colors.white,
-//                           width: 70.w,
-//                           height: 45,
-//                           child: Row(
-//                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                             children: [
-//                               Text(
-//                                 hashTag1,
-//                                 style: TextStyle(
-//                                   fontWeight: FontWeight.bold,
-//                                   fontSize: 13,
-//                                 ),
-//                               ),
-//                             ],
-//                           ),
-//                         ),
-//                         onTap: () async {
-//                           await showCupertinoModalPopup(
-//                             context: context,
-//                             builder: (BuildContext context) {
-//                               return CupertinoActionSheet(
-//                                 actions: [
-//                                   Container(
-//                                     color: Colors.black87,
-//                                     child: CupertinoActionSheetAction(
-//                                       child: Text(
-//                                         'メンズ',
-//                                         style: TextStyle(
-//                                           color: Colors.white,
-//                                           fontSize: 15,
-//                                         ),
-//                                       ),
-//                                       onPressed: () async {
-//                                         hashTag1 = "メンズ";
-//                                         if (mounted) {setState(() {});}
-//                                         Navigator.of(context).pop();
-//                                       },
-//                                     ),
-//                                   ),
-//                                   Container(
-//                                     color: Colors.black87,
-//                                     child: CupertinoActionSheetAction(
-//                                       child: Text(
-//                                         'レディース',
-//                                         style: TextStyle(
-//                                           color: Colors.white,
-//                                           fontSize: 15,
-//                                         ),
-//                                       ),
-//                                       onPressed: () async {
-//                                         hashTag1 = "レディース";
-//                                         if (mounted) {setState(() {});}
-//                                         Navigator.of(context).pop();
-//                                       },
-//                                     ),
-//                                   ),
-//                                 ],
-//                                 cancelButton: CupertinoButton(
-//                                   color: Colors.black87,
-//                                   child: Text(
-//                                     'キャンセル',
-//                                     style: TextStyle(
-//                                       color: Colors.white,
-//                                       fontSize: 15,
-//                                     ),
-//                                   ),
-//                                   onPressed: () {
-//                                     Navigator.of(context).pop();
-//                                   }
-//                                 ),
-//                               );
-//                             },
-//                           );
-//                         },
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//               ),
-//               Container(
-//                 width: 90.w,
-//                 height: 1,
-//                 margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w, bottom: 20,),
-//                 color: Colors.black12,
-//               ),
-//               Container(
-//                 child: Container(
-//                   width: 90.w,
-//                   margin: EdgeInsets.only(right: 5.w, left: 5.w,),
-//                   color: Colors.white,
-//                   child: Row(
-//                     children: [
-//                       Container(
-//                         width: 30,
-//                         margin: EdgeInsets.only(right: 5, left: 5,),
-//                       ),
-//                       Container(
-//                         margin: EdgeInsets.only(left: 5.w,),
-//                         child: Text(
-//                           "ハッシュタグ No.2",
-//                           style: TextStyle(
-//                             fontWeight: FontWeight.bold,
-//                             fontSize: 13,
-//                           ),
-//                         ),
-//                       ),
-//                       Spacer(),
-//                       hashTag2 == '' ?
-//                       Container(
-//                         margin: EdgeInsets.only(left: 5.w,),
-//                         child: Text(
-//                           "選択してください",
-//                           style: TextStyle(
-//                             fontWeight: FontWeight.bold,
-//                             fontSize: 13,
-//                             color: Color(0xFFFF8D89),
-//                           ),
-//                         ),
-//                       ) : Container(),
-//                     ],
-//                   ),
-//                 ),
-//               ),
-//               Container(
-//                 width: 90.w,
-//                 margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w,),
-//                 child: Row(
-//                   children: [
-//                     Container(
-//                       width: 30,
-//                       height: 30,
-//                       margin: EdgeInsets.only(right: 5, bottom: 0, left: 5,),
-//                       decoration: BoxDecoration(
-//                         color: hashTag2 == '' ? Colors.red : Colors.black87,
-//                         borderRadius: BorderRadius.circular(5),
-//                       ),
-//                       child: Icon(
-//                         Icons.play_arrow,
-//                         color: Colors.white,
-//                         size: 20,
-//                       ),
-//                     ),
-//                     GestureDetector(
-//                       child: Container(
-//                         margin: EdgeInsets.only(left: 5.w,),
-//                         color: Colors.white,
-//                         width: 70.w,
-//                         height: 45,
-//                         child: Row(
-//                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                           children: [
-//                             Text(
-//                               hashTag2,
-//                               style: TextStyle(
-//                                 fontWeight: FontWeight.bold,
-//                                 fontSize: 13,
-//                               ),
-//                             ),
-//                           ],
-//                         ),
-//                       ),
-//                       onTap: () async {
-//                         await showCupertinoModalPopup(
-//                           context: context,
-//                           builder: (BuildContext context) {
-//                             return CupertinoActionSheet(
-//                               actions: [
-//                                 Container(
-//                                   color: Colors.black87,
-//                                   child: CupertinoActionSheetAction(
-//                                     child: Text(
-//                                       "ストリート",
-//                                       style: TextStyle(
-//                                         color: Colors.white,
-//                                         fontSize: 15,
-//                                       ),
-//                                     ),
-//                                     onPressed: () async {
-//                                       hashTag2 = "ストリート";
-//                                       if (mounted) {setState(() {});}
-//                                       Navigator.of(context).pop();
-//                                     },
-//                                   ),
-//                                 ),
-//                                 Container(
-//                                   color: Colors.black87,
-//                                   child: CupertinoActionSheetAction(
-//                                     child: Text(
-//                                       "クラシック",
-//                                       style: TextStyle(
-//                                         color: Colors.white,
-//                                         fontSize: 15,
-//                                       ),
-//                                     ),
-//                                     onPressed: () async {
-//                                       hashTag2 = "クラシック";
-//                                       if (mounted) {setState(() {});}
-//                                       Navigator.of(context).pop();
-//                                     },
-//                                   ),
-//                                 ),
-//                                 Container(
-//                                   color: Colors.black87,
-//                                   child: CupertinoActionSheetAction(
-//                                     child: Text(
-//                                       "モード",
-//                                       style: TextStyle(
-//                                         color: Colors.white,
-//                                         fontSize: 15,
-//                                       ),
-//                                     ),
-//                                     onPressed: () async {
-//                                       hashTag2 = "モード";
-//                                       if (mounted) {setState(() {});}
-//                                       Navigator.of(context).pop();
-//                                     },
-//                                   ),
-//                                 ),
-//                                 Container(
-//                                   color: Colors.black87,
-//                                   child: CupertinoActionSheetAction(
-//                                     child: Text(
-//                                       "フェミニン",
-//                                       style: TextStyle(
-//                                         color: Colors.white,
-//                                         fontSize: 15,
-//                                       ),
-//                                     ),
-//                                     onPressed: () async {
-//                                       hashTag2 = "フェミニン";
-//                                       if (mounted) {setState(() {});}
-//                                       Navigator.of(context).pop();
-//                                     },
-//                                   ),
-//                                 ),
-//                                 Container(
-//                                   color: Colors.black87,
-//                                   child: CupertinoActionSheetAction(
-//                                     child: Text(
-//                                       "グランジ",
-//                                       style: TextStyle(
-//                                         color: Colors.white,
-//                                         fontSize: 15,
-//                                       ),
-//                                     ),
-//                                     onPressed: () async {
-//                                       hashTag2 = "グランジ";
-//                                       if (mounted) {setState(() {});}
-//                                       Navigator.of(context).pop();
-//                                     },
-//                                   ),
-//                                 ),
-//                                 Container(
-//                                   color: Colors.black87,
-//                                   child: CupertinoActionSheetAction(
-//                                     child: Text(
-//                                       "アンニュイ",
-//                                       style: TextStyle(
-//                                         color: Colors.white,
-//                                         fontSize: 15,
-//                                       ),
-//                                     ),
-//                                     onPressed: () async {
-//                                       hashTag2 = "アンニュイ";
-//                                       if (mounted) {setState(() {});}
-//                                       Navigator.of(context).pop();
-//                                     },
-//                                   ),
-//                                 ),
-//                                 Container(
-//                                   color: Colors.black87,
-//                                   child: CupertinoActionSheetAction(
-//                                     child: Text(
-//                                       "ロック",
-//                                       style: TextStyle(
-//                                         color: Colors.white,
-//                                         fontSize: 15,
-//                                       ),
-//                                     ),
-//                                     onPressed: () async {
-//                                       hashTag2 = "ロック";
-//                                       if (mounted) {setState(() {});}
-//                                       Navigator.of(context).pop();
-//                                     },
-//                                   ),
-//                                 ),
-//                                 Container(
-//                                   color: Colors.black87,
-//                                   child: CupertinoActionSheetAction(
-//                                     child: Text(
-//                                       "クリエイティブ",
-//                                       style: TextStyle(
-//                                         color: Colors.white,
-//                                         fontSize: 15,
-//                                       ),
-//                                     ),
-//                                     onPressed: () async {
-//                                       hashTag2 = "クリエイティブ";
-//                                       if (mounted) {setState(() {});}
-//                                       Navigator.of(context).pop();
-//                                     },
-//                                   ),
-//                                 ),
-//                               ],
-//                               cancelButton: CupertinoButton(
-//                                 color: Colors.black87,
-//                                 child: Text(
-//                                   'キャンセル',
-//                                   style: TextStyle(
-//                                     color: Colors.white,
-//                                     fontSize: 15,
-//                                   ),
-//                                 ),
-//                                 onPressed: () {
-//                                   Navigator.of(context).pop();
-//                                 }
-//                               ),
-//                             );
-//                           },
-//                         );
-//                       },
-//                     ),
-//                   ],
-//                 ),
-//               ),
-//               Container(
-//                 width: 90.w,
-//                 height: 1,
-//                 margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w, bottom: 20,),
-//                 color: Colors.black12,
-//               ),
-//               Container(
-//                 child: Container(
-//                   width: 90.w,
-//                   margin: EdgeInsets.only(right: 5.w, left: 5.w,),
-//                   color: Colors.white,
-//                   child: Row(
-//                     children: [
-//                       Container(
-//                         width: 30,
-//                         margin: EdgeInsets.only(right: 5, left: 5,),
-//                       ),
-//                       Container(
-//                         margin: EdgeInsets.only(left: 5.w,),
-//                         child: Text(
-//                           "ハッシュタグ No.3",
-//                           style: TextStyle(
-//                             fontWeight: FontWeight.bold,
-//                             fontSize: 13,
-//                           ),
-//                         ),
-//                       ),
-//                       Spacer(),
-//                       Container(
-//                         margin: EdgeInsets.only(left: 5.w,),
-//                         child: Text(
-//                           "$postHashTag1/15",
-//                           style: TextStyle(
-//                             fontWeight: FontWeight.bold,
-//                             fontSize: 11,
-//                             color: postHashTag1 >= 15 ?  Colors.red : Colors.black87,
-//                           ),
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//               ),
-//               Container(
-//                 child: Container(
-//                   width: 90.w,
-//                   margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w,),
-//                   child: Row(
-//                     children: [
-//                       Container(
-//                         width: 30,
-//                         height: 30,
-//                         margin: EdgeInsets.only(right: 5, bottom: 0, left: 5,),
-//                         decoration: BoxDecoration(
-//                           color: Colors.black87,
-//                           borderRadius: BorderRadius.circular(5),
-//                         ),
-//                         child: Icon(
-//                           Icons.play_arrow,
-//                           color: Colors.white,
-//                           size: 20,
-//                         ),
-//                       ),
-//                       Container(
-//                         margin: EdgeInsets.only(left: 5.w,),
-//                         width: 70.w,
-//                         child: TextFormField(
-//                           keyboardType: TextInputType.multiline,
-//                           maxLines: 1,
-//                           minLines: 1,
-//                           maxLength: 15,
-//                           onChanged: onHashtag1,
-//                           autovalidateMode: AutovalidateMode.always,
-//                           controller: hashTag3,
-//                           decoration: InputDecoration(
-//                             border: InputBorder.none,
-//                             counterText: '',
-//                           ),
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//               ),
-//               Container(
-//                 width: 90.w,
-//                 height: 1,
-//                 margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w, bottom: 20,),
-//                 color: Colors.black12,
-//               ),
-//               Container(
-//                 child: Container(
-//                   width: 90.w,
-//                   margin: EdgeInsets.only(right: 5.w, left: 5.w,),
-//                   color: Colors.white,
-//                   child: Row(
-//                     children: [
-//                       Container(
-//                         width: 30,
-//                         margin: EdgeInsets.only(right: 5, left: 5,),
-//                       ),
-//                       Container(
-//                         margin: EdgeInsets.only(left: 5.w,),
-//                         child: Text(
-//                           "ハッシュタグ No.4",
-//                           style: TextStyle(
-//                             fontWeight: FontWeight.bold,
-//                             fontSize: 13,
-//                           ),
-//                         ),
-//                       ),
-//                       Spacer(),
-//                       Container(
-//                         margin: EdgeInsets.only(left: 5.w,),
-//                         child: Text(
-//                           "$postHashTag2/15",
-//                           style: TextStyle(
-//                             fontWeight: FontWeight.bold,
-//                             fontSize: 11,
-//                             color: postHashTag2 >= 15 ?  Colors.red : Colors.black87,
-//                           ),
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//               ),
-//               Container(
-//                 child: Container(
-//                   width: 90.w,
-//                   margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w,),
-//                   child: Row(
-//                     children: [
-//                       Container(
-//                         width: 30,
-//                         height: 30,
-//                         margin: EdgeInsets.only(right: 5, bottom: 0, left: 5,),
-//                         decoration: BoxDecoration(
-//                           color: Colors.black87,
-//                           borderRadius: BorderRadius.circular(5),
-//                         ),
-//                         child: Icon(
-//                           Icons.play_arrow,
-//                           color: Colors.white,
-//                           size: 20,
-//                         ),
-//                       ),
-//                       Container(
-//                         margin: EdgeInsets.only(left: 5.w,),
-//                         width: 70.w,
-//                         child: TextFormField(
-//                           keyboardType: TextInputType.multiline,
-//                           maxLines: 1,
-//                           minLines: 1,
-//                           maxLength: 15,
-//                           onChanged: onHashtag2,
-//                           autovalidateMode: AutovalidateMode.always,
-//                           controller: hashTag4,
-//                           decoration: InputDecoration(
-//                             border: InputBorder.none,
-//                             counterText: '',
-//                           ),
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//               ),
-//               Container(
-//                 width: 90.w,
-//                 height: 1,
-//                 margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w, bottom: 20,),
-//                 color: Colors.black12,
-//               ),
-//               Container(
-//                 child: Container(
-//                   width: 90.w,
-//                   margin: EdgeInsets.only(right: 5.w, left: 5.w,),
-//                   color: Colors.white,
-//                   child: Row(
-//                     children: [
-//                       Container(
-//                         width: 30,
-//                         margin: EdgeInsets.only(right: 5, left: 5,),
-//                       ),
-//                       Container(
-//                         margin: EdgeInsets.only(left: 5.w,),
-//                         child: Text(
-//                           "ハッシュタグ No.5",
-//                           style: TextStyle(
-//                             fontWeight: FontWeight.bold,
-//                             fontSize: 13,
-//                           ),
-//                         ),
-//                       ),
-//                       Spacer(),
-//                       Container(
-//                         margin: EdgeInsets.only(left: 5.w,),
-//                         child: Text(
-//                           "$postHashTag3/15",
-//                           style: TextStyle(
-//                             fontWeight: FontWeight.bold,
-//                             fontSize: 11,
-//                             color: postHashTag3 >= 15 ?  Colors.red : Colors.black87,
-//                           ),
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//               ),
-//               Container(
-//                 child: Container(
-//                   width: 90.w,
-//                   margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w,),
-//                   child: Row(
-//                     children: [
-//                       Container(
-//                         width: 30,
-//                         height: 30,
-//                         margin: EdgeInsets.only(right: 5, bottom: 0, left: 5,),
-//                         decoration: BoxDecoration(
-//                           color: Colors.black87,
-//                           borderRadius: BorderRadius.circular(5),
-//                         ),
-//                         child: Icon(
-//                           Icons.play_arrow,
-//                           color: Colors.white,
-//                           size: 20,
-//                         ),
-//                       ),
-//                       Container(
-//                         margin: EdgeInsets.only(left: 5.w,),
-//                         width: 70.w,
-//                         child: TextFormField(
-//                           keyboardType: TextInputType.multiline,
-//                           maxLines: 1,
-//                           minLines: 1,
-//                           maxLength: 15,
-//                           onChanged: onHashtag3,
-//                           autovalidateMode: AutovalidateMode.always,
-//                           controller: hashTag5,
-//                           decoration: InputDecoration(
-//                             border: InputBorder.none,
-//                             counterText: '',
-//                           ),
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//               ),
-//               Container(
-//                 width: 90.w,
-//                 height: 1,
-//                 margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w, bottom: 20,),
-//                 color: Colors.black12,
-//               ),
-//               Container(
-//                 height: 100,
-//               ),
-//             ],
-//           ),
-//           onTap: () {
-//             FocusScope.of(context).unfocus();
-//           },
-//         ),
-//       ),
-//     );
-//   }
-// }

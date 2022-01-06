@@ -18,19 +18,19 @@ class _PhotoEditState extends State<PhotoEdit> {
 
   String hashTag1 = "";
   String hashTag2 = "";
-  final hashTag3 = TextEditingController();
-  final hashTag4 = TextEditingController();
-  final hashTag5 = TextEditingController();
+  // final hashTag3 = TextEditingController();
+  // final hashTag4 = TextEditingController();
+  // final hashTag5 = TextEditingController();
 
   bool warningOption1 = false;
   bool warningOption2 = false;
-  bool warningOption3 = false;
-  bool warningOption4 = false;
-  bool warningOption5 = false;
+  // bool warningOption3 = false;
+  // bool warningOption4 = false;
+  // bool warningOption5 = false;
 
   int postHashTag1 = 0;
   int postHashTag2 = 0;
-  int postHashTag3 = 0;
+  // int postHashTag3 = 0;
 
   String postImage = "";
 
@@ -39,9 +39,9 @@ class _PhotoEditState extends State<PhotoEdit> {
     super.initState();
     hashTag1 = widget.list[0];
     hashTag2 = widget.list[1];
-    hashTag3.text = widget.list[2];
-    hashTag4.text = widget.list[3];
-    hashTag5.text = widget.list[4];
+    // hashTag3.text = widget.list[2];
+    // hashTag4.text = widget.list[3];
+    // hashTag5.text = widget.list[4];
     if (mounted) {setState(() {});}
   }
 
@@ -56,7 +56,7 @@ class _PhotoEditState extends State<PhotoEdit> {
   }
 
   onHashtag3(String value) {
-    postHashTag3 = value.length;
+    // postHashTag3 = value.length;
     if (mounted) {setState(() {});}
   }
 
@@ -106,8 +106,7 @@ class _PhotoEditState extends State<PhotoEdit> {
                   ),
                 ),
                 onTap: () async {
-                  await FirebaseFirestore.instance.collection("posts")
-                  .doc(widget.name).update({'post_tags': [hashTag1,hashTag2,hashTag3.text.replaceFirst('#', ''),hashTag4.text.replaceFirst('#', ''),hashTag5.text.replaceFirst('#', ''),],});
+                  await FirebaseFirestore.instance.collection("posts").doc(widget.name).update({'post_tags': [hashTag1,hashTag2,]});
                   Navigator.pop(context);
                 },
               ),
@@ -539,258 +538,6 @@ class _PhotoEditState extends State<PhotoEdit> {
                       },
                     ),
                   ],
-                ),
-              ),
-              Container(
-                width: 90.w,
-                height: 1,
-                margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w, bottom: 20,),
-                color: Colors.black12,
-              ),
-              Container(
-                child: Container(
-                  width: 90.w,
-                  margin: EdgeInsets.only(right: 5.w, left: 5.w,),
-                  color: Colors.white,
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 30,
-                        margin: EdgeInsets.only(right: 5, left: 5,),
-                      ),
-                      Container(
-                        margin: EdgeInsets.only(left: 5.w,),
-                        child: Text(
-                          "ハッシュタグ No.3",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                      Spacer(),
-                      Container(
-                        margin: EdgeInsets.only(left: 5.w,),
-                        child: Text(
-                          "$postHashTag1/15",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11,
-                            color: postHashTag1 == 15 ?  Colors.red : Colors.black87,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Container(
-                child: Container(
-                  width: 90.w,
-                  margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w,),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 30,
-                        height: 30,
-                        margin: EdgeInsets.only(right: 5, bottom: 0, left: 5,),
-                        decoration: BoxDecoration(
-                          color: warningOption3 ? Colors.red : Colors.black87,
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        child: Icon(
-                          Icons.play_arrow,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
-                      Container(
-                        margin: EdgeInsets.only(left: 5.w,),
-                        width: 70.w,
-                        child: TextFormField(
-                          keyboardType: TextInputType.multiline,
-                          maxLines: 1,
-                          minLines: 1,
-                          maxLength: 15,
-                          onChanged: onHashtag1,
-                          autovalidateMode: AutovalidateMode.always,
-                          controller: hashTag3,
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            counterText: '',
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Container(
-                width: 90.w,
-                height: 1,
-                margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w, bottom: 20,),
-                color: Colors.black12,
-              ),
-              Container(
-                child: Container(
-                  width: 90.w,
-                  margin: EdgeInsets.only(right: 5.w, left: 5.w,),
-                  color: Colors.white,
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 30,
-                        margin: EdgeInsets.only(right: 5, left: 5,),
-                      ),
-                      Container(
-                        margin: EdgeInsets.only(left: 5.w,),
-                        child: Text(
-                          "ハッシュタグ No.4",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                      Spacer(),
-                      Container(
-                        margin: EdgeInsets.only(left: 5.w,),
-                        child: Text(
-                          "$postHashTag2/15",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11,
-                            color: postHashTag2 == 15 ?  Colors.red : Colors.black87,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Container(
-                child: Container(
-                  width: 90.w,
-                  margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w,),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 30,
-                        height: 30,
-                        margin: EdgeInsets.only(right: 5, bottom: 0, left: 5,),
-                        decoration: BoxDecoration(
-                          color: warningOption4 ? Colors.red : Colors.black87,
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        child: Icon(
-                          Icons.play_arrow,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
-                      Container(
-                        margin: EdgeInsets.only(left: 5.w,),
-                        width: 70.w,
-                        child: TextFormField(
-                          keyboardType: TextInputType.multiline,
-                          maxLines: 1,
-                          minLines: 1,
-                          maxLength: 15,
-                          onChanged: onHashtag2,
-                          autovalidateMode: AutovalidateMode.always,
-                          controller: hashTag4,
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            counterText: '',
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Container(
-                width: 90.w,
-                height: 1,
-                margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w, bottom: 20,),
-                color: Colors.black12,
-              ),
-              Container(
-                child: Container(
-                  width: 90.w,
-                  margin: EdgeInsets.only(right: 5.w, left: 5.w,),
-                  color: Colors.white,
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 30,
-                        margin: EdgeInsets.only(right: 5, left: 5,),
-                      ),
-                      Container(
-                        margin: EdgeInsets.only(left: 5.w,),
-                        child: Text(
-                          "ハッシュタグ No.5",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                      Spacer(),
-                      Container(
-                        margin: EdgeInsets.only(left: 5.w,),
-                        child: Text(
-                          "$postHashTag3/15",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11,
-                            color: postHashTag3 == 15 ?  Colors.red : Colors.black87,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Container(
-                child: Container(
-                  width: 90.w,
-                  margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w,),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 30,
-                        height: 30,
-                        margin: EdgeInsets.only(right: 5, bottom: 0, left: 5,),
-                        decoration: BoxDecoration(
-                          color: warningOption5 ? Colors.red : Colors.black87,
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        child: Icon(
-                          Icons.play_arrow,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
-                      Container(
-                        margin: EdgeInsets.only(left: 5.w,),
-                        width: 70.w,
-                        child: TextFormField(
-                          keyboardType: TextInputType.multiline,
-                          maxLines: 1,
-                          minLines: 1,
-                          maxLength: 15,
-                          onChanged: onHashtag3,
-                          autovalidateMode: AutovalidateMode.always,
-                          controller: hashTag5,
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            counterText: '',
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
               ),
               Container(
