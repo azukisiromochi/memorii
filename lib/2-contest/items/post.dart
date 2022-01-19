@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:ui';
 import 'package:sizer/sizer.dart';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -56,8 +57,8 @@ class _PostState extends State<Post> {
     super.initState();
     imageUuid = uuid.v1().substring(0,23);
     defaultImage = list[Random().nextInt(4)];
-    imageUrl1080 = 'https://firebasestorage.googleapis.com/v0/b/photo-beauty-24f63.appspot.com/o/image%2Fresize_images%2F' + imageUuid + '_1080x1080?alt=media&token';
-    imageUrl500 = 'https://firebasestorage.googleapis.com/v0/b/photo-beauty-24f63.appspot.com/o/image%2Fresize_images%2F' + imageUuid + '_500x500?alt=media&token';
+    contestImageUrl1080 = 'https://firebasestorage.googleapis.com/v0/b/photo-beauty-24f63.appspot.com/o/contests%2Fresize_images%2F' + imageUuid + '_1080x1080?alt=media&token';
+    contestImageUrl500 = 'https://firebasestorage.googleapis.com/v0/b/photo-beauty-24f63.appspot.com/o/contests%2Fresize_images%2F' + imageUuid + '_500x500?alt=media&token';
     if (mounted) {setState(() {});}
   }
   Future<void> getImage() async {
@@ -69,14 +70,14 @@ class _PostState extends State<Post> {
     }
   }
   Future<void> postImage() async {
-    await FirebaseFirestore.instance.collection('posts').doc(imageUuid)
+    await FirebaseFirestore.instance.collection('contests').doc(imageUuid)
     .set({
       'post_count': 0,
       'post_liker': [],
       'post_instagram': UserData.instance.account[0]['user_instagram'],
       'post_name': UserData.instance.account[0]['user_name'],
-      'post_image_1080': imageUrl1080,
-      'post_image_500': imageUrl500,
+      'post_image_1080': contestImageUrl1080,
+      'post_image_500': contestImageUrl500,
       'post_image_name': imageUuid,
       'post_image_path': imageFilePath.replaceFirst('File: \'', '').replaceFirst('\'', ''),
       'post_tags': [hashTag1,hashTag2,hashTag3.text.replaceFirst('#', ''),hashTag4.text.replaceFirst('#', ''),hashTag5.text.replaceFirst('#', ''),],
@@ -84,7 +85,7 @@ class _PostState extends State<Post> {
       'post_time': DateTime.now(),
     });
     widget.onTap();
-    await FirebaseStorage.instance.ref().child("image/$imageUuid").putFile(File(imageFilePath));
+    await FirebaseStorage.instance.ref().child("contests/$imageUuid").putFile(File(imageFilePath));
   }
   onHashtag1(String value) {postHashTag1 = value.length;if (mounted) {setState(() {});}}
   onHashtag2(String value) {postHashTag2 = value.length;if (mounted) {setState(() {});}}
@@ -116,7 +117,7 @@ class _PostState extends State<Post> {
             Align(
               alignment: Alignment.center,
               child: Text(
-                "作品投稿",
+                "コンテスト応募",
                 style: TextStyle(
                   color: Colors.black87,
                   fontWeight: FontWeight.bold,
@@ -124,13 +125,33 @@ class _PostState extends State<Post> {
                 ),
               ),
             ),
+            imageFile == null ? 
             Align(
               alignment: Alignment.centerRight,
               child: GestureDetector(
                 child: Container(
                   margin: EdgeInsets.only(right: 10,),
-                  child:
-                  Text(
+                  child: Text(
+                    '画像',
+                    style: TextStyle(
+                      color: Color(0xFFFF8D89),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15
+                    ),
+                  ),
+                ),
+                onTap: () {
+                  getImage();
+                },
+              )
+            )
+            :
+            Align(
+              alignment: Alignment.centerRight,
+              child: GestureDetector(
+                child: Container(
+                  margin: EdgeInsets.only(right: 10,),
+                  child: Text(
                     '投稿',
                     style: TextStyle(
                       color: hashTag1 == '' || hashTag2 == '' ? Colors.black12 : Color(0xFFFF8D89),
@@ -140,10 +161,8 @@ class _PostState extends State<Post> {
                   ),
                 ),
                 onTap: () {
-                  if (imageFile != null) {
-                    if (hashTag1 != '' && hashTag2 != '') {
-                      postImage();
-                    }
+                  if (hashTag1 != '' && hashTag2 != '') {
+                    postImage();
                   }
                 },
               )
@@ -158,88 +177,87 @@ class _PostState extends State<Post> {
         child: GestureDetector(
           child: Column(
             children: [
-              imageFile == null ?
               Stack(
-                alignment: Alignment.center,
                 children: [
-                  GestureDetector(
-                    child: Container(
-                      width: 45.w,
-                      height: 45.w,
-                      margin: EdgeInsets.only(top: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.all(Radius.circular(5)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 5.0,
-                            spreadRadius: 1.0,
-                            offset: Offset(0, 0)
-                          ),
-                        ],
+                  imageFile == null ?
+                  Container(
+                    width: 100.w,
+                    height: 250,
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage(
+                          defaultImage,
+                        ),
+                        fit: BoxFit.cover,
                       ),
                     ),
-                    onTap: () {
-                      getImage();
-                    },
-                  ),
-                  GestureDetector(
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.image,
-                          color: Color(0xFFFF8D89),
-                          size: 70,
-                        ),
-                        Text(
-                          '画像アップロード',
-                          style: TextStyle(
-                            color: Colors.black87,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 8.sp,
-                          ),
-                        ),
-                      ],
-                    ),
-                    onTap: () {
-                      getImage();
-                    },
-                  ),
-                ],
-              ) : 
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  GestureDetector(
-                    child: Container(
-                      width: 45.w,
-                      height: 45.w,
-                      margin: EdgeInsets.only(top: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.all(Radius.circular(5)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 5.0,
-                            spreadRadius: 1.0,
-                            offset: Offset(0, 0)
-                          ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(5.0),
-                        child: Image.file(
-                          imageFile!,
-                          fit: BoxFit.cover,
-                        ),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 0, sigmaY:0),
+                      child: Container(
+                        color: Colors.white.withOpacity(0.5),
                       ),
                     ),
-                    onTap: () {
-                      getImage();
-                    },
+                  )
+                  :
+                  Container(
+                    width: 100.w,
+                    height: 250,
+                    child: Stack(
+                      children: <Widget>[
+                        Container(
+                          width: 100.w,
+                          height: 250,
+                          child: Image.file(
+                            imageFile!,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 0, sigmaY:0),
+                          child: Container(
+                            color: Colors.white.withOpacity(0.5),
+                          ),
+                        ),
+                      ]
+                    ),
                   ),
+                  imageFile == null ?
+                  Container(
+                    width: 100.w,
+                    height: 250,
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage(
+                          defaultImage,
+                        ),
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  )
+                  :
+                  Container(
+                    width: 100.w,
+                    height: 250,
+                    child: Image.file(
+                      imageFile!,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                  imageFile == null ?
+                  Container(
+                    width: 100.w,
+                    height: 250,
+                    child: Center(
+                      child: Text(
+                        'default image',
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  )
+                  :
+                  Container(),
                 ],
               ),
               SizedBox(
@@ -638,258 +656,6 @@ class _PostState extends State<Post> {
                 color: Colors.black12,
               ),
               Container(
-                child: Container(
-                  width: 90.w,
-                  margin: EdgeInsets.only(right: 5.w, left: 5.w,),
-                  color: Colors.white,
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 30,
-                        margin: EdgeInsets.only(right: 5, left: 5,),
-                      ),
-                      Container(
-                        margin: EdgeInsets.only(left: 5.w,),
-                        child: Text(
-                          "ハッシュタグ No.3",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                      Spacer(),
-                      Container(
-                        margin: EdgeInsets.only(left: 5.w,),
-                        child: Text(
-                          "$postHashTag1/15",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11,
-                            color: postHashTag1 >= 15 ?  Colors.red : Colors.black87,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Container(
-                child: Container(
-                  width: 90.w,
-                  margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w,),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 30,
-                        height: 30,
-                        margin: EdgeInsets.only(right: 5, bottom: 0, left: 5,),
-                        decoration: BoxDecoration(
-                          color: Colors.black87,
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        child: Icon(
-                          Icons.play_arrow,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
-                      Container(
-                        margin: EdgeInsets.only(left: 5.w,),
-                        width: 70.w,
-                        child: TextFormField(
-                          keyboardType: TextInputType.multiline,
-                          maxLines: 1,
-                          minLines: 1,
-                          maxLength: 15,
-                          onChanged: onHashtag1,
-                          autovalidateMode: AutovalidateMode.always,
-                          controller: hashTag3,
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            counterText: '',
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Container(
-                width: 90.w,
-                height: 1,
-                margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w, bottom: 20,),
-                color: Colors.black12,
-              ),
-              Container(
-                child: Container(
-                  width: 90.w,
-                  margin: EdgeInsets.only(right: 5.w, left: 5.w,),
-                  color: Colors.white,
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 30,
-                        margin: EdgeInsets.only(right: 5, left: 5,),
-                      ),
-                      Container(
-                        margin: EdgeInsets.only(left: 5.w,),
-                        child: Text(
-                          "ハッシュタグ No.4",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                      Spacer(),
-                      Container(
-                        margin: EdgeInsets.only(left: 5.w,),
-                        child: Text(
-                          "$postHashTag2/15",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11,
-                            color: postHashTag2 >= 15 ?  Colors.red : Colors.black87,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Container(
-                child: Container(
-                  width: 90.w,
-                  margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w,),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 30,
-                        height: 30,
-                        margin: EdgeInsets.only(right: 5, bottom: 0, left: 5,),
-                        decoration: BoxDecoration(
-                          color: Colors.black87,
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        child: Icon(
-                          Icons.play_arrow,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
-                      Container(
-                        margin: EdgeInsets.only(left: 5.w,),
-                        width: 70.w,
-                        child: TextFormField(
-                          keyboardType: TextInputType.multiline,
-                          maxLines: 1,
-                          minLines: 1,
-                          maxLength: 15,
-                          onChanged: onHashtag2,
-                          autovalidateMode: AutovalidateMode.always,
-                          controller: hashTag4,
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            counterText: '',
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Container(
-                width: 90.w,
-                height: 1,
-                margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w, bottom: 20,),
-                color: Colors.black12,
-              ),
-              Container(
-                child: Container(
-                  width: 90.w,
-                  margin: EdgeInsets.only(right: 5.w, left: 5.w,),
-                  color: Colors.white,
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 30,
-                        margin: EdgeInsets.only(right: 5, left: 5,),
-                      ),
-                      Container(
-                        margin: EdgeInsets.only(left: 5.w,),
-                        child: Text(
-                          "ハッシュタグ No.5",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                      Spacer(),
-                      Container(
-                        margin: EdgeInsets.only(left: 5.w,),
-                        child: Text(
-                          "$postHashTag3/15",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11,
-                            color: postHashTag3 >= 15 ?  Colors.red : Colors.black87,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Container(
-                child: Container(
-                  width: 90.w,
-                  margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w,),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 30,
-                        height: 30,
-                        margin: EdgeInsets.only(right: 5, bottom: 0, left: 5,),
-                        decoration: BoxDecoration(
-                          color: Colors.black87,
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        child: Icon(
-                          Icons.play_arrow,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
-                      Container(
-                        margin: EdgeInsets.only(left: 5.w,),
-                        width: 70.w,
-                        child: TextFormField(
-                          keyboardType: TextInputType.multiline,
-                          maxLines: 1,
-                          minLines: 1,
-                          maxLength: 15,
-                          onChanged: onHashtag3,
-                          autovalidateMode: AutovalidateMode.always,
-                          controller: hashTag5,
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            counterText: '',
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Container(
-                width: 90.w,
-                height: 1,
-                margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w, bottom: 20,),
-                color: Colors.black12,
-              ),
-              Container(
                 height: 100,
               ),
             ],
@@ -902,8 +668,3 @@ class _PostState extends State<Post> {
     );
   }
 }
-
-
-
-
-

@@ -1,14 +1,11 @@
 import 'dart:async';
 import 'dart:io';
-// import 'package:app/2-contest/list.dart';
-import 'package:app/2-account/account.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import '1-home/list.dart';
-// import '3-account/account.dart';
+import '3-account/account.dart';
 import 'package:sizer/sizer.dart';
 import 'auth/main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -117,7 +114,7 @@ class _NavState extends State<Nav> {
   void onTap() {
     _selectedIndex = 1;
     navBtn1 = false;
-    navBtn2 = false;
+    // navBtn2 = false;
     if (mounted) {setState(() {});}
   }
 
@@ -178,7 +175,7 @@ class _NavState extends State<Nav> {
                   //   onPressed: () {
                   //     if (_selectedIndex == 1){
                   //       _selectedIndex = 1;
-                  //       // navigatorsKey.currentState!.popUntil((route) => route.isFirst);
+                  //       navigatorsKey.currentState!.popUntil((route) => route.isFirst);
                   //       if (mounted) {setState(() {});}
                   //     } else {
                   //       _selectedIndex = 1;
@@ -278,7 +275,7 @@ class _SplashState extends State<Splash> {
       Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => Nav()));
     });
   }
-
+ 
   @override
   Widget build(BuildContext context) {
     return Scaffold(

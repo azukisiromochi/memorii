@@ -4,12 +4,8 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>ja_JP</string>
-	<key>CFBundleDisplayName</key>
-	<string>anime20200101</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
-	<key>CFBundleIconName</key>
-	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -33,7 +29,7 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.204348105803-b8bp19s1muk1850vgi2s0lsiopih1jg0</string>
+				<string>com.googleusercontent.apps.546326024686-6h36ahi3co3jbnbn774tqbnn2flkaplu</string>
 			</array>
 		</dict>
 	</array>

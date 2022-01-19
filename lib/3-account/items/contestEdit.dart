@@ -4,33 +4,23 @@ import 'package:flutter/cupertino.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sizer/sizer.dart';
 
-class PhotoEdit extends StatefulWidget {
+class ContestEdit extends StatefulWidget {
   final String name;
   final String image;
   final List list;
-  PhotoEdit(this.name, this.image, this.list);
+  ContestEdit(this.name, this.image, this.list);
 
   @override
-  _PhotoEditState createState() => _PhotoEditState();
+  _ContestEditState createState() => _ContestEditState();
 }
 
-class _PhotoEditState extends State<PhotoEdit> {
+class _ContestEditState extends State<ContestEdit> {
 
   String hashTag1 = "";
   String hashTag2 = "";
-  // final hashTag3 = TextEditingController();
-  // final hashTag4 = TextEditingController();
-  // final hashTag5 = TextEditingController();
 
   bool warningOption1 = false;
   bool warningOption2 = false;
-  // bool warningOption3 = false;
-  // bool warningOption4 = false;
-  // bool warningOption5 = false;
-
-  int postHashTag1 = 0;
-  int postHashTag2 = 0;
-  // int postHashTag3 = 0;
 
   String postImage = "";
 
@@ -39,24 +29,6 @@ class _PhotoEditState extends State<PhotoEdit> {
     super.initState();
     hashTag1 = widget.list[0];
     hashTag2 = widget.list[1];
-    // hashTag3.text = widget.list[2];
-    // hashTag4.text = widget.list[3];
-    // hashTag5.text = widget.list[4];
-    if (mounted) {setState(() {});}
-  }
-
-  onHashtag1(String value) {
-    postHashTag1 = value.length;
-    if (mounted) {setState(() {});}
-  }
-
-  onHashtag2(String value) {
-    postHashTag2 = value.length;
-    if (mounted) {setState(() {});}
-  }
-
-  onHashtag3(String value) {
-    // postHashTag3 = value.length;
     if (mounted) {setState(() {});}
   }
 
@@ -106,7 +78,7 @@ class _PhotoEditState extends State<PhotoEdit> {
                   ),
                 ),
                 onTap: () async {
-                  await FirebaseFirestore.instance.collection("posts").doc(widget.name).update({'post_tags': [hashTag1,hashTag2,]});
+                  await FirebaseFirestore.instance.collection("contests").doc(widget.name).update({'post_tags': [hashTag1,hashTag2,]});
                   Navigator.pop(context);
                 },
               ),

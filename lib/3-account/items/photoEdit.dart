@@ -1,37 +1,20 @@
-import 'dart:io';
-import 'package:flutter/cupertino.dart';
+import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'dart:async';
-import 'package:sizer/sizer.dart';
-import 'dart:math';
+import 'package:flutter/cupertino.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:uuid/uuid.dart';
-import '../../singleton.dart';
+import 'package:sizer/sizer.dart';
 
-class Post extends StatefulWidget {
-  final Function() onTap;
-  const Post(this.onTap);
+class PhotoEdit extends StatefulWidget {
+  final String name;
+  final String image;
+  final List list;
+  PhotoEdit(this.name, this.image, this.list);
 
   @override
-  _PostState createState() => _PostState();
+  _PhotoEditState createState() => _PhotoEditState();
 }
 
-class _PostState extends State<Post> {
-
-  var uuid = Uuid();
-  File? imageFile;
-  String imageFilePath = '';
-  final picker = ImagePicker();
-  String imageUuid = "";
-  String defaultImage = "";
-  String imageUrl1080 = "";
-  String imageUrl500 = "";
-  String contestImageUrl1080 = "";
-  String contestImageUrl500 = "";
-
-  String contest = "";
+class _PhotoEditState extends State<PhotoEdit> {
 
   String hashTag1 = "";
   String hashTag2 = "";
@@ -39,56 +22,43 @@ class _PostState extends State<Post> {
   final hashTag4 = TextEditingController();
   final hashTag5 = TextEditingController();
 
+  bool warningOption1 = false;
+  bool warningOption2 = false;
+  bool warningOption3 = false;
+  bool warningOption4 = false;
+  bool warningOption5 = false;
+
   int postHashTag1 = 0;
   int postHashTag2 = 0;
   int postHashTag3 = 0;
 
-  List list = [
-    'assets/default1.png',
-    'assets/default2.png',
-    'assets/default3.png',
-    'assets/default4.png',
-    'assets/default5.png',
-  ];
+  String postImage = "";
 
   @override
   void initState() {
     super.initState();
-    imageUuid = uuid.v1().substring(0,23);
-    defaultImage = list[Random().nextInt(4)];
-    imageUrl1080 = 'https://firebasestorage.googleapis.com/v0/b/photo-beauty-24f63.appspot.com/o/image%2Fresize_images%2F' + imageUuid + '_1080x1080?alt=media&token';
-    imageUrl500 = 'https://firebasestorage.googleapis.com/v0/b/photo-beauty-24f63.appspot.com/o/image%2Fresize_images%2F' + imageUuid + '_500x500?alt=media&token';
+    hashTag1 = widget.list[0];
+    hashTag2 = widget.list[1];
+    hashTag3.text = widget.list[2];
+    hashTag4.text = widget.list[3];
+    hashTag5.text = widget.list[4];
     if (mounted) {setState(() {});}
   }
-  Future<void> getImage() async {
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      imageFile = File(pickedFile.path);
-      imageFilePath = pickedFile.path;
-      if (mounted) {setState(() {});}
-    }
+
+  onHashtag1(String value) {
+    postHashTag1 = value.length;
+    if (mounted) {setState(() {});}
   }
-  Future<void> postImage() async {
-    await FirebaseFirestore.instance.collection('posts').doc(imageUuid)
-    .set({
-      'post_count': 0,
-      'post_liker': [],
-      'post_instagram': UserData.instance.account[0]['user_instagram'],
-      'post_name': UserData.instance.account[0]['user_name'],
-      'post_image_1080': imageUrl1080,
-      'post_image_500': imageUrl500,
-      'post_image_name': imageUuid,
-      'post_image_path': imageFilePath.replaceFirst('File: \'', '').replaceFirst('\'', ''),
-      'post_tags': [hashTag1,hashTag2,hashTag3.text.replaceFirst('#', ''),hashTag4.text.replaceFirst('#', ''),hashTag5.text.replaceFirst('#', ''),],
-      'post_uid': UserData.instance.user,
-      'post_time': DateTime.now(),
-    });
-    widget.onTap();
-    await FirebaseStorage.instance.ref().child("image/$imageUuid").putFile(File(imageFilePath));
+
+  onHashtag2(String value) {
+    postHashTag2 = value.length;
+    if (mounted) {setState(() {});}
   }
-  onHashtag1(String value) {postHashTag1 = value.length;if (mounted) {setState(() {});}}
-  onHashtag2(String value) {postHashTag2 = value.length;if (mounted) {setState(() {});}}
-  onHashtag3(String value) {postHashTag3 = value.length;if (mounted) {setState(() {});}}
+
+  onHashtag3(String value) {
+    postHashTag3 = value.length;
+    if (mounted) {setState(() {});}
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -116,37 +86,31 @@ class _PostState extends State<Post> {
             Align(
               alignment: Alignment.center,
               child: Text(
-                "作品投稿",
+                '作品編集',
                 style: TextStyle(
                   color: Colors.black87,
                   fontWeight: FontWeight.bold,
-                  fontSize: 15
+                  fontSize: 14,
                 ),
               ),
             ),
             Align(
               alignment: Alignment.centerRight,
               child: GestureDetector(
-                child: Container(
-                  margin: EdgeInsets.only(right: 10,),
-                  child:
-                  Text(
-                    '投稿',
-                    style: TextStyle(
-                      color: hashTag1 == '' || hashTag2 == '' ? Colors.black12 : Color(0xFFFF8D89),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15
-                    ),
+                child: Text(
+                  "完了",
+                  style: TextStyle(
+                    color: Color(0xffED7470),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
                   ),
                 ),
-                onTap: () {
-                  if (imageFile != null) {
-                    if (hashTag1 != '' && hashTag2 != '') {
-                      postImage();
-                    }
-                  }
+                onTap: () async {
+                  await FirebaseFirestore.instance.collection("posts")
+                  .doc(widget.name).update({'post_tags': [hashTag1,hashTag2,hashTag3.text.replaceFirst('#', ''),hashTag4.text.replaceFirst('#', ''),hashTag5.text.replaceFirst('#', ''),],});
+                  Navigator.pop(context);
                 },
-              )
+              ),
             ),
           ],
         ),
@@ -158,87 +122,33 @@ class _PostState extends State<Post> {
         child: GestureDetector(
           child: Column(
             children: [
-              imageFile == null ?
               Stack(
-                alignment: Alignment.center,
                 children: [
-                  GestureDetector(
-                    child: Container(
-                      width: 45.w,
-                      height: 45.w,
-                      margin: EdgeInsets.only(top: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.all(Radius.circular(5)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 5.0,
-                            spreadRadius: 1.0,
-                            offset: Offset(0, 0)
-                          ),
-                        ],
+                  Container(
+                    width: 100.w,
+                    height: 250,
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: NetworkImage(
+                          widget.image,
+                        ),
+                        fit: BoxFit.cover,
                       ),
                     ),
-                    onTap: () {
-                      getImage();
-                    },
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 0, sigmaY:0),
+                      child: Container(
+                        color: Colors.white.withOpacity(0.5),
+                      ),
+                    ),
                   ),
-                  GestureDetector(
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.image,
-                          color: Color(0xFFFF8D89),
-                          size: 70,
-                        ),
-                        Text(
-                          '画像アップロード',
-                          style: TextStyle(
-                            color: Colors.black87,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 8.sp,
-                          ),
-                        ),
-                      ],
+                  Container(
+                    width: 100.w,
+                    height: 250,
+                    child: Image.network(
+                      widget.image,
+                      fit: BoxFit.contain,
                     ),
-                    onTap: () {
-                      getImage();
-                    },
-                  ),
-                ],
-              ) : 
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  GestureDetector(
-                    child: Container(
-                      width: 45.w,
-                      height: 45.w,
-                      margin: EdgeInsets.only(top: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.all(Radius.circular(5)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 5.0,
-                            spreadRadius: 1.0,
-                            offset: Offset(0, 0)
-                          ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(5.0),
-                        child: Image.file(
-                          imageFile!,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                    onTap: () {
-                      getImage();
-                    },
                   ),
                 ],
               ),
@@ -666,7 +576,7 @@ class _PostState extends State<Post> {
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 11,
-                            color: postHashTag1 >= 15 ?  Colors.red : Colors.black87,
+                            color: postHashTag1 == 15 ?  Colors.red : Colors.black87,
                           ),
                         ),
                       ),
@@ -685,7 +595,7 @@ class _PostState extends State<Post> {
                         height: 30,
                         margin: EdgeInsets.only(right: 5, bottom: 0, left: 5,),
                         decoration: BoxDecoration(
-                          color: Colors.black87,
+                          color: warningOption3 ? Colors.red : Colors.black87,
                           borderRadius: BorderRadius.circular(5),
                         ),
                         child: Icon(
@@ -750,7 +660,7 @@ class _PostState extends State<Post> {
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 11,
-                            color: postHashTag2 >= 15 ?  Colors.red : Colors.black87,
+                            color: postHashTag2 == 15 ?  Colors.red : Colors.black87,
                           ),
                         ),
                       ),
@@ -769,7 +679,7 @@ class _PostState extends State<Post> {
                         height: 30,
                         margin: EdgeInsets.only(right: 5, bottom: 0, left: 5,),
                         decoration: BoxDecoration(
-                          color: Colors.black87,
+                          color: warningOption4 ? Colors.red : Colors.black87,
                           borderRadius: BorderRadius.circular(5),
                         ),
                         child: Icon(
@@ -834,7 +744,7 @@ class _PostState extends State<Post> {
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 11,
-                            color: postHashTag3 >= 15 ?  Colors.red : Colors.black87,
+                            color: postHashTag3 == 15 ?  Colors.red : Colors.black87,
                           ),
                         ),
                       ),
@@ -853,7 +763,7 @@ class _PostState extends State<Post> {
                         height: 30,
                         margin: EdgeInsets.only(right: 5, bottom: 0, left: 5,),
                         decoration: BoxDecoration(
-                          color: Colors.black87,
+                          color: warningOption5 ? Colors.red : Colors.black87,
                           borderRadius: BorderRadius.circular(5),
                         ),
                         child: Icon(
@@ -889,9 +799,6 @@ class _PostState extends State<Post> {
                 margin: EdgeInsets.only(top: 0, right: 5.w, left: 5.w, bottom: 20,),
                 color: Colors.black12,
               ),
-              Container(
-                height: 100,
-              ),
             ],
           ),
           onTap: () {
@@ -902,8 +809,6 @@ class _PostState extends State<Post> {
     );
   }
 }
-
-
 
 
 
